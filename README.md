@@ -4,7 +4,7 @@
 ## Motivation
 - django-tastypie is one of the most widely used libraries to provide a REST interface from a django App.
 - The ember-data default RESTAdapter does not follow the conventions used in django-tastypie.
-- Instead of forcing the Django developer to adapt tastypie to ember-data conventions, this adapter does the dirty work.
+- Instead of forcing the django developer to adapt tastypie to ember-data conventions, this adapter does the dirty work.
 
 
 ## Usage
@@ -45,7 +45,7 @@ ii) obviously, the permissions must be configured in the server to allow GET, PO
 
 	class Meta:
         authorization = Authorization()
-        detail_allowed_methods = ['get', 'post', 'put', delete]
+        detail_allowed_methods = ['get', 'post', 'put', 'delete']
         always_return_data = True
 
 
