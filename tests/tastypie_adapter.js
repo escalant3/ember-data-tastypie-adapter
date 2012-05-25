@@ -1,0 +1,1 @@
+../tastypie_adapter.js
