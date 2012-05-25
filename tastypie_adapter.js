@@ -28,21 +28,21 @@ DS.DjangoTastypieAdapter = DS.RESTAdapter.extend({
     
     var jsonData = model.toJSON({ associations: true });
    
-    var associations = get(type, 'associationsByName');
+    var associations = Em.get(type, 'associationsByName');
 
     associations.forEach(function(key, meta){
 
       if (meta.kind === "belongsTo") {
-        key = meta.options.key || get(model, 'namingConvention').foreignKey(key);
+        key = meta.options.key || Em.get(model, 'namingConvention').foreignKey(key);
         value = jsonData[key];
         if (!!value) {
           jsonData[key] = self.getItemUrl(type, meta, value);
         }
 
       } else if (meta.kind === "hasMany") {
-        value = jsonData[key];
-        value.forEach(function(item, i, array) {
-          array[i] = self.getItemUrl(type, meta, item);
+        value = jsonData[key] || [];
+        $.each(value, function(i, item) {
+          value[i] = self.getItemUrl(type, meta, item);
         });
         }
     });
@@ -105,7 +105,7 @@ DS.DjangoTastypieAdapter = DS.RESTAdapter.extend({
   updateRecord: function(store, type, model) {
     var self = this;
 
-    var id = get(model, 'id');
+    var id = Em.get(model, 'id');
     var root = this.rootForType(type);
 
     var data = this._urlifyData(type, model);
@@ -128,7 +128,7 @@ DS.DjangoTastypieAdapter = DS.RESTAdapter.extend({
    * must be enabled in the Resource
    */
   deleteRecord: function(store, type, model) {
-    var id = get(model, 'id');
+    var id = Em.get(model, 'id');
     var root = this.rootForType(type);
 
     var url = [root, id].join("/");
