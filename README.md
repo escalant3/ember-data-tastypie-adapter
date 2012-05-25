@@ -8,8 +8,11 @@
 
 
 ## Usage
-#### Javascript side (as external library)
-- After loading ember.js and ember-data.js, import the tastypie_adapter.js file.
+
+#### Javascript side 
+
+- You can either import the lib/tastypie_adapter.js file or use the ember-data-tastypie-adapter package on your build process.
+
 - To use the adapter with your store:
 
 Basic code to use it with the last ember-data revision:
@@ -51,7 +54,7 @@ ii) obviously, the permissions must be configured in the server to allow GET, PO
 
 
 ## Contributing
-This is the adapter I use for some personal projects but it may be useful for someone in the ember.js/django community. If you want to extend it, please open issues and send pull requests.
+This is the adapter may be useful for someone in the ember.js/django community. If you want to extend it, please open issues and send pull requests.
 
 #### Bulk Commits note
 This adapter does not support bulkCommits and does not plan to do it soon. django-tastypie REST implementation differs from the Ruby on Rails one, widely used by the ember.js community. Although bulkCommits can be implemented with PATCH operations, I didn't like the resulting adapter.
@@ -64,7 +67,3 @@ Go to the tests directory and type:
 	
 Go to http://localhost:8000/ to run the Qunit tests.
 
-
-## Building the adapter in your ember-data.min.js file
-
-Add the js file to the $EMBER_DATA/packages/ember-data/lib/adapters directory and build as usual

@@ -1,1 +1,1 @@
-../tastypie_adapter.js
+../lib/tastypie_adapter.js
