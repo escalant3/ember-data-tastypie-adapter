@@ -34,7 +34,7 @@ module("Django Tastypie Adapter", {
 
     store = DS.Store.create({
       adapter: adapter,
-      revision: 4
+      revision: 6
     });
 
     Person = DS.Model.extend({
