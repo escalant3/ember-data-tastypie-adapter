@@ -181,7 +181,8 @@ test("updates are not required to return data", function() {
   equal(get(person, 'name'), "Brohuda Brokatz", "the data is preserved");
 });
 
-test("updating a record with custom primaryKey", function() {
+/* COMMENTED IN EMBER DATA
+test("updating a record with custom primaryKey", function() {debugger;
   set(adapter, 'bulkCommit', false);
   store.load(Role, { _id: 1, name: "Developer" });
 
@@ -192,7 +193,7 @@ test("updating a record with custom primaryKey", function() {
 
   expectUrl("api/v1/role/1/", "the plural of the model name with its ID");
   ajaxHash.success({ role: { _id: 1, name: "Manager" } });
-});
+});*/
 
 
 test("deleting a person makes a DELETE to /people/:id", function() {
@@ -220,6 +221,7 @@ test("deleting a person makes a DELETE to /people/:id", function() {
   expectState('deleted');
 });
 
+/* COMMENTED IN EMBER DATA
 test("deleting a record with custom primaryKey", function() {
   set(adapter, 'bulkCommit', false);
 
@@ -233,7 +235,7 @@ test("deleting a record with custom primaryKey", function() {
 
   expectUrl("api/v1/role/1/", "the plural of the model name with its ID");
   ajaxHash.success();
-});
+});*/
 
 test("finding all people makes a GET to api/v1/person/", function() {
   people = store.find(Person);
