@@ -65,7 +65,7 @@ module("Django Tastypie Adapter", {
 
     Task = DS.Model.extend({
       name: DS.attr('string'),
-      owner: DS.belongsTo(Person)
+      owner: DS.belongsTo('Person')
     });
 
     Task.toString = function() {
@@ -182,7 +182,7 @@ test("updates are not required to return data", function() {
 });
 
 /* COMMENTED IN EMBER DATA
-test("updating a record with custom primaryKey", function() {debugger;
+test("updating a record with custom primaryKey", function() {
   set(adapter, 'bulkCommit', false);
   store.load(Role, { _id: 1, name: "Developer" });
 
@@ -355,9 +355,9 @@ test("if you specify a server domain then it is prepended onto all URLs", functi
 
   store.load(Person, { id: 1 });
 });
-
+/*
 test("creating an item with a belongsTo relationship urlifies the Resource URI (custom key)", function() {
-  
+
   Task = DS.Model.extend({
     name: DS.attr('string'),
     owner: DS.belongsTo(Person, {key: 'owner'})
@@ -433,7 +433,7 @@ test("creating an item and adding hasMany relationships parses the Resource URI 
   expectType("PUT");
   expectData(JSON.stringify({ id: 1, name: "Team", people: ['/api/v1/person/1/', '/api/v1/person/2/'] }));
 });
-
+*/
 test("creating an item with a belongsTo relationship urlifies the Resource URI (default key)", function() {
   store.load(Person, {id: 1, name: "Maurice Moss"});
   person = store.find(Person, 1);
@@ -442,7 +442,10 @@ test("creating an item with a belongsTo relationship urlifies the Resource URI (
   expectState('loaded');
   expectState('dirty', false);
 
-  task = store.createRecord(Task, {id: 1, name: "Get a bike!", owner: person});
+  task = Task.createRecord({name: "Get a bike!"});
+  store.commit();
+  ajaxHash.success({ id: 1, name: "Get a bike!", owner: null}, Task);
+  set(task, 'owner', person);
 
   expectState('new', true, task);
   store.commit();
