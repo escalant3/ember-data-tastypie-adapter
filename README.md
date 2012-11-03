@@ -18,7 +18,7 @@
 Basic code to use it with the last ember-data revision:
 	
 	  App.store = DS.Store.create({
- 		revision: 4,
+ 		revision: 7,
     	adapter: DS.DjangoTastypieAdapter.create({
    		})
   	  });
