@@ -11,7 +11,10 @@
 
 #### Javascript side
 
-- You can either import the lib/tastypie_adapter.js file or use the ember-data-tastypie-adapter package on your build process.
+- You can either:
+
+  - import the lib/tastypie_serializer.js and lib/tastypie_adapter.js files, or
+  - use the ember-data-tastypie-adapter package on your build process.
 
 - To use the adapter with your store:
 
