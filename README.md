@@ -9,29 +9,29 @@
 
 ## Usage
 
-#### Javascript side 
+#### Javascript side
 
 - You can either import the lib/tastypie_adapter.js file or use the ember-data-tastypie-adapter package on your build process.
 
 - To use the adapter with your store:
 
 Basic code to use it with the last ember-data revision:
-	
-	  App.store = DS.Store.create({
- 		revision: 7,
-    	adapter: DS.DjangoTastypieAdapter.create({
-   		})
-  	  });
+
+      App.store = DS.Store.create({
+        revision: 7,
+        adapter: DS.DjangoTastypieAdapter.create({
+        })
+      });
 
 Creating with several parameters:
-	
-	  App.store = DS.Store.create({
- 		revision: 4,
-    	adapter: DS.DjangoTastypieAdapter.create({
-    	  serverDomain: "http://localhost:8000",
-    	  tastypieApiUrl: "api/v1"
-   		})
-  	  });
+
+      App.store = DS.Store.create({
+        revision: 4,
+        adapter: DS.DjangoTastypieAdapter.create({
+          serverDomain: "http://localhost:8000",
+          namespace: "api/v1"
+        })
+      });
 
 
 #### python/django side
@@ -40,13 +40,13 @@ The standard django-tastypie configuration will do the work. However, some detai
 i) ember-data always expect data in return (except in deletions). Make sure to configure your Resources with the meta option if you are going to perform POST or PUT operations:
 
 
-	class Meta:
-		always_return_data = True
-	
-	
+    class Meta:
+        always_return_data = True
+
+
 ii) obviously, the permissions must be configured in the server to allow GET, POST, PUT and DELETE methods to provide fully access to CRUD operations. Usually, django-tastypie will require an Authorization meta option to allow writing
 
-	class Meta:
+    class Meta:
         authorization = Authorization()
         detail_allowed_methods = ['get', 'post', 'put', 'delete']
         always_return_data = True
@@ -63,8 +63,8 @@ This adapter does not support bulkCommits and does not plan to do it soon. djang
 ## Unit tests
 Go to the tests directory and type:
 
-	python -m SimpleHTTPServer
-	
+    python -m SimpleHTTPServer
+
 Go to http://localhost:8000/ to run the Qunit tests.
 
 ## Versions
