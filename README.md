@@ -21,16 +21,15 @@ Basic code to use it with the last ember-data revision:
 
       App.store = DS.Store.create({
         revision: 7,
-        adapter: DS.DjangoTastypieAdapter.create({
-        })
+        adapter: DS.DjangoTastypieAdapter.extend()
       });
 
 Creating with several parameters:
 
       App.store = DS.Store.create({
-        revision: 4,
-        adapter: DS.DjangoTastypieAdapter.create({
-          serverDomain: "http://localhost:8000",
+        revision: 7,
+        adapter: DS.DjangoTastypieAdapter.extend({
+          serverDomain: "http://yourDomain.com",
           namespace: "api/v1"
         })
       });
