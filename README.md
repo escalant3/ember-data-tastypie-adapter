@@ -15,7 +15,7 @@
   - import the lib/tastypie_serializer.js and lib/tastypie_adapter.js files, or
   - use the ember-data-tastypie-adapter package on your build process.
   or
-  - use dist/tastypie_adapter.js after running `run bundle && bundle exec rakep build`
+  - use dist/tastypie_adapter.js after running `bundle && bundle exec rakep build`
 
 - To use the adapter with your store:
 
