@@ -1,0 +1,14 @@
+require 'json'
+require 'rake-pipeline-web-filters'
+
+output 'dist'
+input 'lib' do
+
+  match 'tastypie_*.js' do
+    if ENV['RAKEP_MODE'] == 'production'
+      uglify
+    end
+    concat ['tastypie_serializer.js', 'tastypie_adapter.js'], 'tastypie_adapter.js'
+  end
+
+end
