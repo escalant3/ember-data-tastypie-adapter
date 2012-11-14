@@ -140,8 +140,8 @@ window.ember_deprecateFunc  = Ember.deprecateFunc("ember_deprecateFunc is deprec
 
 })();
 
-// Version: v1.0.pre-294-g7f2bea4
-// Last commit: 7f2bea4 (2012-11-01 12:51:45 -0700)
+// Version: v1.0.pre-304-g8cbc7ac
+// Last commit: 8cbc7ac (2012-11-12 13:24:13 -0800)
 
 
 (function() {
@@ -10619,7 +10619,7 @@ Ember.NativeArray = NativeArray;
 */
 Ember.A = function(arr){
   if (arr === undefined) { arr = []; }
-  return Ember.NativeArray.apply(arr);
+  return Ember.Array.detect(arr) ? arr : Ember.NativeArray.apply(arr);
 };
 
 /**
@@ -12483,9 +12483,10 @@ Ember.EventDispatcher = Ember.Object.extend(
 */
 
 // Add a new named queue for rendering views that happens
-// after bindings have synced.
+// after bindings have synced, and a queue for scheduling actions
+// that that should occur after view rendering.
 var queues = Ember.run.queues;
-queues.splice(Ember.$.inArray('actions', queues)+1, 0, 'render');
+queues.splice(Ember.$.inArray('actions', queues)+1, 0, 'render', 'afterRender');
 
 })();
 
@@ -13573,6 +13574,8 @@ Ember.View = Ember.CoreView.extend(
   templateForName: function(name, type) {
     if (!name) { return; }
 
+    Ember.assert("templateNames are not allowed to contain periods: "+name, name.indexOf('.') === -1);
+
     var templates = get(this, 'templates'),
         template = get(templates, name);
 
@@ -13866,7 +13869,8 @@ Ember.View = Ember.CoreView.extend(
         view: this,
         buffer: buffer,
         isRenderData: true,
-        keywords: keywords
+        keywords: keywords,
+        insideGroup: get(this, 'templateData.insideGroup')
       };
 
       // Invoke the template with the provided template context, which
@@ -13990,10 +13994,6 @@ Ember.View = Ember.CoreView.extend(
         // Get the current value of the property
         newClass = this._classStringForProperty(binding);
         elem = this.$();
-        if (!elem) {
-          removeObserver(this, parsedPath.path, observer);
-          return;
-        }
 
         // If we had previously added a class to the element, remove it.
         if (oldClass) {
@@ -16037,8 +16037,24 @@ var get = Ember.get, set = Ember.set, fmt = Ember.String.fmt;
   ``` javascript
   Ember.CollectionView.CONTAINER_MAP['article'] = 'section'
   ```
-
-
+  ## Programatic creation of child views
+  For cases where additional customization beyond the use of a single `itemViewClass`
+  or `tagName` matching is required CollectionView's `createChildView` method can be
+  overidden:
+  
+  ``` javascript
+  CustomCollectionView = Ember.CollectionView.extend({
+    createChildView: function(viewClass, attrs) {
+      if (attrs.content.kind == 'album') {
+        viewClass = App.AlbumView;
+      } else {
+        viewClass = App.SongView;
+      }
+      this._super(viewClass, attrs);
+    }
+  });
+  ```
+  
   ## Empty View
   You can provide an `Ember.View` subclass to the `Ember.CollectionView` instance as its
   `emptyView` property. If the `content` property of a `CollectionView` is set to `null`
@@ -17629,16 +17645,33 @@ Ember.Routable = Ember.Mixin.create({
 
     @method absoluteRoute
     @param manager {Ember.StateManager}
-    @param hash {Hash}
+    @param hashes {Array}
   */
-  absoluteRoute: function(manager, hash) {
-    var parentState = get(this, 'parentState');
-    var path = '', generated;
+  absoluteRoute: function(manager, hashes) {
+    var parentState = get(this, 'parentState'),
+      path = '', 
+      generated,
+      currentHash;
+
+    // check if object passed instead of array
+    // in this case set currentHash = hashes 
+    // this allows hashes to be a single hash 
+    // (it will be applied to state and all parents)
+    currentHash = null;
+    if (hashes) {
+      if (hashes instanceof Array) {
+        if (hashes.length > 0) {
+          currentHash = hashes.shift();
+        }
+      } else {
+        currentHash = hashes;
+      }
+    }
 
     // If the parent state is routable, use its current path
     // as this route's prefix.
     if (get(parentState, 'isRoutable')) {
-      path = parentState.absoluteRoute(manager, hash);
+      path = parentState.absoluteRoute(manager, hashes);
     }
 
     var matcher = get(this, 'routeMatcher'),
@@ -17646,10 +17679,10 @@ Ember.Routable = Ember.Mixin.create({
 
     // merge the existing serialized object in with the passed
     // in hash.
-    hash = hash || {};
-    merge(hash, serialized);
+    currentHash = currentHash || {};
+    merge(currentHash, serialized);
 
-    generated = matcher && matcher.generate(hash);
+    generated = matcher && matcher.generate(currentHash);
 
     if (generated) {
       path = path + '/' + generated;
@@ -19001,7 +19034,7 @@ Ember.Router = Ember.StateManager.extend(
     }
   },
 
-  urlFor: function(path, hash) {
+  urlFor: function(path, hashes) {
     var currentState = get(this, 'currentState') || this,
         state = this.findStateByPath(currentState, path);
 
@@ -19009,36 +19042,42 @@ Ember.Router = Ember.StateManager.extend(
     Ember.assert(Ember.String.fmt("To get a URL for the state '%@', it must have a `route` property.", [path]), get(state, 'routeMatcher'));
 
     var location = get(this, 'location'),
-        absoluteRoute = state.absoluteRoute(this, hash);
+        absoluteRoute = state.absoluteRoute(this, hashes);
 
     return location.formatURL(absoluteRoute);
   },
 
   urlForEvent: function(eventName) {
-    var contexts = Array.prototype.slice.call(arguments, 1);
-    var currentState = get(this, 'currentState');
-    var targetStateName = currentState.lookupEventTransition(eventName);
+    var contexts = Array.prototype.slice.call(arguments, 1),
+      currentState = get(this, 'currentState'),
+      targetStateName = currentState.lookupEventTransition(eventName),
+      targetState,
+      hashes;
 
     Ember.assert(Ember.String.fmt("You must specify a target state for event '%@' in order to link to it in the current state '%@'.", [eventName, get(currentState, 'path')]), targetStateName);
 
-    var targetState = this.findStateByPath(currentState, targetStateName);
+    targetState = this.findStateByPath(currentState, targetStateName);
 
     Ember.assert("Your target state name " + targetStateName + " for event " + eventName + " did not resolve to a state", targetState);
 
-    var hash = this.serializeRecursively(targetState, contexts, {});
 
-    return this.urlFor(targetStateName, hash);
+    hashes = this.serializeRecursively(targetState, contexts, []);
+
+    return this.urlFor(targetStateName, hashes);
   },
 
-  serializeRecursively: function(state, contexts, hash) {
-    var parentState,
-        context = get(state, 'hasContext') ? contexts.pop() : null;
-    merge(hash, state.serialize(this, context));
-    parentState = state.get("parentState");
-    if (parentState && parentState instanceof Ember.Route) {
-      return this.serializeRecursively(parentState, contexts, hash);
+  serializeRecursively: function(state, contexts, hashes) {
+    var parentState, 
+			context = get(state, 'hasContext') ? contexts.pop() : null,
+      hash = context ? state.serialize(this, context) : null;
+
+		hashes.push(hash);
+		parentState = state.get("parentState");
+
+		if (parentState && parentState instanceof Ember.Route) {
+      return this.serializeRecursively(parentState, contexts, hashes);
     } else {
-      return hash;
+      return hashes;
     }
   },
 
@@ -20252,7 +20291,8 @@ function bind(property, options, preserveContext, shouldDisplay, valueNormalizer
       inverse = options.inverse,
       view = data.view,
       currentContext = this,
-      pathRoot, path, normalized;
+      pathRoot, path, normalized,
+      observer;
 
   normalized = normalizePath(currentContext, property, data);
 
@@ -20261,27 +20301,47 @@ function bind(property, options, preserveContext, shouldDisplay, valueNormalizer
 
   // Set up observers for observable objects
   if ('object' === typeof this) {
-    // Create the view that will wrap the output of this template/property
-    // and add it to the nearest view's childViews array.
-    // See the documentation of Ember._HandlebarsBoundView for more.
-    var bindView = view.createChildView(Ember._HandlebarsBoundView, {
-      preserveContext: preserveContext,
-      shouldDisplayFunc: shouldDisplay,
-      valueNormalizerFunc: valueNormalizer,
-      displayTemplate: fn,
-      inverseTemplate: inverse,
-      path: path,
-      pathRoot: pathRoot,
-      previousContext: currentContext,
-      isEscaped: !options.hash.unescaped,
-      templateData: options.data
-    });
+    if (data.insideGroup) {
+      observer = function() {
+        Ember.run.once(view, 'rerender');
+      };
 
-    view.appendChild(bindView);
+      var template, context, result = handlebarsGet(pathRoot, path, options);
 
-    var observer = function() {
-      Ember.run.scheduleOnce('render', bindView, 'rerenderIfNeeded');
-    };
+      result = valueNormalizer(result);
+
+      context = preserveContext ? currentContext : result;
+      if (shouldDisplay(result)) {
+        template = fn;
+      } else if (inverse) {
+        template = inverse;
+      }
+
+      template(context, { data: options.data });
+    } else {
+      // Create the view that will wrap the output of this template/property
+      // and add it to the nearest view's childViews array.
+      // See the documentation of Ember._HandlebarsBoundView for more.
+      var bindView = view.createChildView(Ember._HandlebarsBoundView, {
+        preserveContext: preserveContext,
+        shouldDisplayFunc: shouldDisplay,
+        valueNormalizerFunc: valueNormalizer,
+        displayTemplate: fn,
+        inverseTemplate: inverse,
+        path: path,
+        pathRoot: pathRoot,
+        previousContext: currentContext,
+        isEscaped: !options.hash.unescaped,
+        templateData: options.data
+      });
+
+      view.appendChild(bindView);
+
+      /** @private */
+      observer = function() {
+        Ember.run.scheduleOnce('render', bindView, 'rerenderIfNeeded');
+      };
+    }
 
     // Observes the given property on the context and
     // tells the Ember._HandlebarsBoundView to re-render. If property
@@ -20305,7 +20365,8 @@ function simpleBind(property, options) {
   var data = options.data,
       view = data.view,
       currentContext = this,
-      pathRoot, path, normalized;
+      pathRoot, path, normalized,
+      observer;
 
   normalized = normalizePath(currentContext, property, data);
 
@@ -20314,20 +20375,30 @@ function simpleBind(property, options) {
 
   // Set up observers for observable objects
   if ('object' === typeof this) {
-    var bindView = Ember._SimpleHandlebarsView.create().setProperties({
-      path: path,
-      pathRoot: pathRoot,
-      isEscaped: !options.hash.unescaped,
-      previousContext: currentContext,
-      templateData: options.data
-    });
+    if (data.insideGroup) {
+      observer = function() {
+        Ember.run.once(view, 'rerender');
+      };
 
-    view.createChildView(bindView);
-    view.appendChild(bindView);
+      var result = handlebarsGet(pathRoot, path, options);
+      if (result === null || result === undefined) { result = ""; }
+      data.buffer.push(result);
+    } else {
+      var bindView = Ember._SimpleHandlebarsView.create().setProperties({
+        path: path,
+        pathRoot: pathRoot,
+        isEscaped: !options.hash.unescaped,
+        previousContext: currentContext,
+        templateData: options.data
+      });
 
-    var observer = function() {
-      Ember.run.scheduleOnce('render', bindView, 'rerender');
-    };
+      view.createChildView(bindView);
+      view.appendChild(bindView);
+
+      observer = function() {
+        Ember.run.scheduleOnce('render', bindView, 'rerender');
+      };
+    }
 
     // Observes the given property on the context and
     // tells the Ember._HandlebarsBoundView to re-render. If property
@@ -21539,6 +21610,94 @@ Ember.Handlebars.EachView = Ember.CollectionView.extend(Ember._Metamorph, {
   }
 });
 
+var GroupedEach = Ember.Handlebars.GroupedEach = function(context, path, options) {
+  var self = this,
+      normalized = Ember.Handlebars.normalizePath(context, path, options.data);
+
+  this.context = context;
+  this.path = path;
+  this.options = options;
+  this.template = options.fn;
+  this.containingView = options.data.view;
+  this.normalizedRoot = normalized.root;
+  this.normalizedPath = normalized.path;
+  this.content = this.lookupContent();
+
+  this.addContentObservers();
+  this.addArrayObservers();
+
+  this.containingView.on('willClearRender', function() {
+    self.destroy();
+  });
+};
+
+GroupedEach.prototype = {
+  contentWillChange: function() {
+    this.removeArrayObservers();
+  },
+
+  contentDidChange: function() {
+    this.content = this.lookupContent();
+    this.addArrayObservers();
+    this.rerenderContainingView();
+  },
+
+  contentArrayWillChange: Ember.K,
+
+  contentArrayDidChange: function() {
+    this.rerenderContainingView();
+  },
+
+  lookupContent: function() {
+    return Ember.Handlebars.get(this.normalizedRoot, this.normalizedPath, this.options);
+  },
+
+  addArrayObservers: function() {
+    this.content.addArrayObserver(this, {
+      willChange: 'contentArrayWillChange',
+      didChange: 'contentArrayDidChange'
+    });
+  },
+
+  removeArrayObservers: function() {
+    this.content.removeArrayObserver(this, {
+      willChange: 'contentArrayWillChange',
+      didChange: 'contentArrayDidChange'
+    });
+  },
+
+  addContentObservers: function() {
+    Ember.addBeforeObserver(this.normalizedRoot, this.normalizedPath, this, this.contentWillChange);
+    Ember.addObserver(this.normalizedRoot, this.normalizedPath, this, this.contentDidChange);
+  },
+
+  removeContentObservers: function() {
+    Ember.removeBeforeObserver(this.normalizedRoot, this.normalizedPath, this.contentWillChange);
+    Ember.removeObserver(this.normalizedRoot, this.normalizedPath, this.contentDidChange);
+  },
+
+  render: function() {
+    var content = this.content,
+        contentLength = get(content, 'length'),
+        data = this.options.data,
+        template = this.template;
+
+    data.insideEach = true;
+    for (var i = 0; i < contentLength; i++) {
+      template(content.objectAt(i), { data: data });
+    }
+  },
+
+  rerenderContainingView: function() {
+    Ember.run.scheduleOnce('render', this.containingView, 'rerender');
+  },
+
+  destroy: function() {
+    this.removeContentObservers();
+    this.removeArrayObservers();
+  }
+};
+
 /**
   The `{{#each}}` helper loops over elements in a collection, rendering its block once for each item:
 
@@ -21642,7 +21801,11 @@ Ember.Handlebars.registerHelper('each', function(path, options) {
   // Set up emptyView as a metamorph with no tag
   //options.hash.emptyViewClass = Ember._MetamorphView;
 
-  return Ember.Handlebars.helpers.collection.call(this, 'Ember.Handlebars.EachView', options);
+  if (options.data.insideGroup && !options.hash.groupedRows && !options.hash.itemViewClass) {
+    new Ember.Handlebars.GroupedEach(this, path, options).render();
+  } else {
+    return Ember.Handlebars.helpers.collection.call(this, 'Ember.Handlebars.EachView', options);
+  }
 });
 
 })();
@@ -23265,8 +23428,8 @@ Ember Handlebars
 
 })();
 
-// Version: v1.0.pre-294-g7f2bea4
-// Last commit: 7f2bea4 (2012-11-01 12:51:45 -0700)
+// Version: v1.0.pre-304-g8cbc7ac
+// Last commit: 8cbc7ac (2012-11-12 13:24:13 -0800)
 
 
 (function() {
