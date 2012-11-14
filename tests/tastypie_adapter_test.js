@@ -16,25 +16,22 @@ module("Django Tastypie Adapter", {
       ajax: function(url, type, hash) {
         var success = hash.success, self = this;
 
-        ajaxUrl = this.getTastypieUrl(url);
+        ajaxUrl = url;
         ajaxType = type;
         ajaxHash = hash;
 
         if (success) {
           hash.success = function(json, type) {
-            if (!!type) {
-              json = self._deurlifyData(type, json);
-            }
             success.call(self, json);
           };
         }
-      },
+      }
 
     });
 
     store = DS.Store.create({
       adapter: adapter,
-      revision: 6
+      revision: 8
     });
 
     Person = DS.Model.extend({
@@ -117,9 +114,9 @@ test("creating a person makes a POST to /person, with the data hash", function()
   store.commit();
   expectState('saving');
 
-  expectUrl("api/v1/person/", "the collection is the same as the model name");
+  expectUrl("/api/v1/person/", "the collection is the same as the model name");
   expectType("POST");
-  expectData(JSON.stringify({ name: "Tom Dale" }));
+  expectData({ name: "Tom Dale" });
 
   ajaxHash.success({ id: 1, name: "Tom Dale" });
   expectState('saving', false);
@@ -144,7 +141,7 @@ test("updating a person makes a PUT to /people/:id with the data hash", function
   store.commit();
   expectState('saving');
 
-  expectUrl("api/v1/person/1/", "the plural of the model name with its ID");
+  expectUrl("/api/v1/person/1/", "the plural of the model name with its ID");
   expectType("PUT");
 
   ajaxHash.success({ id: 1, name: "Brohuda Brokatz" });
@@ -171,7 +168,7 @@ test("updates are not required to return data", function() {
   store.commit();
   expectState('saving');
 
-  expectUrl("api/v1/person/1/", "the plural of the model name with its ID");
+  expectUrl("/api/v1/person/1/", "the plural of the model name with its ID");
   expectType("PUT");
 
   ajaxHash.success();
@@ -214,7 +211,7 @@ test("deleting a person makes a DELETE to /people/:id", function() {
   store.commit();
   expectState('saving');
 
-  expectUrl("api/v1/person/1/", "the plural of the model name with its ID");
+  expectUrl("/api/v1/person/1/", "the plural of the model name with its ID");
   expectType("DELETE");
 
   ajaxHash.success();
@@ -240,8 +237,8 @@ test("deleting a record with custom primaryKey", function() {
 test("finding all people makes a GET to api/v1/person/", function() {
   people = store.find(Person);
 
-  expectUrl("api/v1/person/", "the plural of the model name");
-  
+  expectUrl("/api/v1/person/", "the plural of the model name");
+
   expectType("GET");
 
   ajaxHash.success({"objects": [{ id: 1, name: "Yehuda Katz" }]});
@@ -258,7 +255,7 @@ test("finding a person by ID makes a GET to api/v1/person/:id", function() {
   person = store.find(Person, 1);
 
   expectState('loaded', false);
-  expectUrl("api/v1/person/1/", "the plural of the model name with the ID requested");
+  expectUrl("/api/v1/person/1/", "the plural of the model name with the ID requested");
   expectType("GET");
 
   ajaxHash.success({ id: 1, name: "Yehuda Katz" });
@@ -284,7 +281,7 @@ test("finding many people by a list of IDs", function() {
     equal(get(person, 'isLoaded'), false, "the person is being loaded");
   });
 
-  expectUrl("api/v1/person/set/1;2;3/");
+  expectUrl("/api/v1/person/set/1;2;3/");
   expectType("GET");
 
   ajaxHash.success({"objects":
@@ -317,7 +314,7 @@ test("finding people by a query", function() {
 
   equal(get(people, 'length'), 0, "there are no people yet, as the query has not returned");
 
-  expectUrl("api/v1/person/", "the collection at the plural of the model name");
+  expectUrl("/api/v1/person/", "the collection at the plural of the model name");
   expectType("GET");
   expectData({ page: 1 });
 
@@ -351,7 +348,7 @@ test("finding people by a query", function() {
 test("if you specify a server domain then it is prepended onto all URLs", function() {
   set(adapter, 'serverDomain', 'http://localhost:8000/');
   person = store.find(Person, 1);
-  expectUrl("http://localhost:8000/api/v1/person/1/", "the namespace, followed by by the plural of the model name and the id")
+  expectUrl("http://localhost:8000/api/v1/person/1/", "the namespace, followed by by the plural of the model name and the id");
 
   store.load(Person, { id: 1 });
 });
@@ -433,7 +430,7 @@ test("creating an item and adding hasMany relationships parses the Resource URI 
   expectType("PUT");
   expectData(JSON.stringify({ id: 1, name: "Team", people: ['/api/v1/person/1/', '/api/v1/person/2/'] }));
 });
-*/
+
 test("creating an item with a belongsTo relationship urlifies the Resource URI (default key)", function() {
   store.load(Person, {id: 1, name: "Maurice Moss"});
   person = store.find(Person, 1);
@@ -473,9 +470,9 @@ test("creating an item and adding hasMany relationships parses the Resource URI 
   store.commit();
   expectState('saving', true, group);
 
-  expectUrl('api/v1/group/', 'create Group URL');
+  expectUrl('/api/v1/group/', 'create Group URL');
   expectType("POST");
-  expectData(JSON.stringify({ id: 1, name: "Team", people: [] }));
+  expectData({name: "Team", people: [] });
 
   ajaxHash.success({ id: 1, name: "Team", people: [] });
 
@@ -491,7 +488,9 @@ test("creating an item and adding hasMany relationships parses the Resource URI 
   store.commit();
   expectState('saving', true, group);
 
-  expectUrl('api/v1/group/1/', 'modify Group URL');
+  expectUrl('/api/v1/group/1/', 'modify Group URL');
   expectType("PUT");
   expectData(JSON.stringify({ id: 1, name: "Team", people: ['/api/v1/person/1/', '/api/v1/person/2/'] }));
 });
+
+*/
