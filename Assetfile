@@ -2,13 +2,19 @@ require 'json'
 require 'rake-pipeline-web-filters'
 
 output 'dist'
-input 'lib' do
+input 'packages' do
 
-  match 'tastypie_*.js' do
+  match '*/lib/tastypie_adapter.js' do
     if ENV['RAKEP_MODE'] == 'production'
       uglify
     end
-    concat ['tastypie_serializer.js', 'tastypie_adapter.js'], 'tastypie_adapter.js'
+    concat ['tastypie_adapter.js'], 'tastypie_adapter.js'
+  end
+  match '*/lib/tastypie_serializer.js' do
+    if ENV['RAKEP_MODE'] == 'production'
+      uglify
+    end
+    concat ['tastypie_serializer.js'], 'tastypie_adapter.js'
   end
 
 end

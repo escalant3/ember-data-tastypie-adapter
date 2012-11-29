@@ -78,6 +78,5 @@ DS.DjangoTastypieSerializer = DS.Serializer.extend({
     }
     return value;
   }
-
 });
 

@@ -1,1 +1,1 @@
-../lib/tastypie_adapter.js
+../packages/ember-data-tastypie-adapter/lib/tastypie_adapter.js
