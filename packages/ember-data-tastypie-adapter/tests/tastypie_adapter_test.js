@@ -6,6 +6,9 @@ var Role, role, roles;
 var Group, group;
 var Task, task;
 
+// Ember-data revision (breaking changes)
+var REVISION = 9;
+
 module("Django Tastypie Adapter", {
   setup: function() {
     ajaxUrl = undefined;
@@ -31,11 +34,12 @@ module("Django Tastypie Adapter", {
 
     store = DS.Store.create({
       adapter: adapter,
-      revision: 8
+      revision: REVISION
     });
 
     Person = DS.Model.extend({
-      name: DS.attr('string')
+      name: DS.attr('string'),
+      tasks: DS.hasMany('Task')
     });
 
     Person.toString = function() {
@@ -44,7 +48,7 @@ module("Django Tastypie Adapter", {
 
     Group = DS.Model.extend({
       name: DS.attr('string'),
-      people: DS.hasMany(Person)
+      people: DS.hasMany('Person')
     });
 
     Group.toString = function() {
@@ -116,7 +120,7 @@ test("creating a person makes a POST to /person, with the data hash", function()
 
   expectUrl("/api/v1/person/", "the collection is the same as the model name");
   expectType("POST");
-  expectData({ name: "Tom Dale" });
+  expectData({ name: "Tom Dale", tasks: [] });
 
   ajaxHash.success({ id: 1, name: "Tom Dale" });
   expectState('saving', false);
@@ -267,6 +271,14 @@ test("finding a person by ID makes a GET to api/v1/person/:id", function() {
   equal(person, store.find(Person, 1), "the record is now in the store, and can be looked up by ID without another Ajax request");
 });
 
+test("findMany generates a tastypie style url", function() {
+  var adapter = store.get('adapter');
+
+  adapter.findMany(store, Person, [1,2,3]);
+  expectUrl("/api/v1/person/set/1;2;3/");
+  expectType("GET");
+});
+
 test("finding many people by a list of IDs", function() {
   store.load(Group, { id: 1, people: [
     "/api/v1/person/1/",
@@ -350,7 +362,6 @@ test("finding people by a query", function() {
   });
 });
 
-
 test("if you specify a server domain then it is prepended onto all URLs", function() {
   set(adapter, 'serverDomain', 'http://localhost:8000/');
   person = store.find(Person, 1);
@@ -374,68 +385,6 @@ test("the adapter can use custom keys", function() {
   equal(JSON.stringify(adapter.toData(person)), '{"name_custom":"Maurice Moss"}');
 });
 
-/*
-test("creating an item with a belongsTo relationship urlifies the Resource URI (custom key)", function() {
-
-  var adapter, Adapter, customStore, task;
-
-  Person = DS.Model.extend({
-    name: DS.attr('string'),
-    tasks: DS.hasMany('Task')
-  });
-
-  Task = DS.Model.extend({
-    name: DS.attr('string'),
-    owner: DS.belongsTo('Person', {key: 'owner'})
-  });
-
-  Adapter = DS.DjangoTastypieAdapter.extend();
-  Adapter.map('Task', {
-    owner: {key: 'owner_custom_key'}
-  });
-  adapter = Adapter.create();
-
-  customStore = DS.Store.create({
-    revision: 8,
-    adapter: Adapter
-  });
-
-  customStore.load(Person, {id: 1, name: "Maurice Moss", tasks: []});
-  person = customStore.find(Person, 1);
-
-  expectState('new', false);
-  expectState('loaded');
-  expectState('dirty', false);
-
-  task = Task.createRecord({name: "Get a bike!"});
-  set(task, 'owner', person);
-
-  equal(JSON.stringify(adapter.toData(task)), '{"name":"Get a bike!","owner_custom_key":"1"}');
-
-});
-
-test("creating an item and adding hasMany relationships parses the Resource URI (custom key)", function() {
-
-  var Adapter, adapter, customStore, moss, roy;
-
-  Group = DS.Model.extend({
-    name: DS.attr('string'),
-    people: DS.hasMany(Person)
-  });
-
-  Adapter = DS.DjangoTastypieAdapter.extend();
-  Adapter.map('Group', {
-    people: {key: 'people_custom'}
-  });
-  adapter = Adapter.create();
-
-  team = Group.createRecord({name: "Team"});
-
-  equal(JSON.stringify(adapter.toData(team)), '{"name":"Team","people_custom":[]}');
-
-});
-
-
 test("creating an item with a belongsTo relationship urlifies the Resource URI (default key)", function() {
   store.load(Person, {id: 1, name: "Maurice Moss"});
   person = store.find(Person, 1);
@@ -445,17 +394,62 @@ test("creating an item with a belongsTo relationship urlifies the Resource URI (
   expectState('dirty', false);
 
   task = Task.createRecord({name: "Get a bike!"});
-  store.commit();
-  ajaxHash.success({ id: 1, name: "Get a bike!", owner: null}, Task);
-  set(task, 'owner', person);
 
   expectState('new', true, task);
-  store.commit();
-  expectState('saving', true, task);
+  expectState('dirty', true, task);
 
-  expectUrl('api/v1/task/', 'create URL');
+  set(task, 'owner', person);
+
+  store.commit();
+
+  expectUrl('/api/v1/task/', 'create URL');
   expectType("POST");
-  expectData(JSON.stringify({ id: 1, name: "Get a bike!", owner_id: "/api/v1/person/1/"}));
+  expectData({ name: "Get a bike!", owner_id: "/api/v1/person/1/"});
+
+  ajaxHash.success({ id: 1, name: "Get a bike!", owner: "/api/v1/person/1/"}, Task);
+
+});
+
+test("creating an item with a belongsTo relationship urlifies the Resource URI (custom key)", function() {
+
+  var adapter, Adapter, task;
+
+  Adapter = DS.DjangoTastypieAdapter.extend({
+    ajax: function(url, type, hash) {
+      var success = hash.success, self = this;
+
+      ajaxUrl = url;
+      ajaxType = type;
+      ajaxHash = hash;
+
+      if (success) {
+        hash.success = function(json, type) {
+          success.call(self, json);
+        };
+      }
+    }
+
+  });
+
+  Adapter.map('Task', {
+    owner: {key: 'owner_custom_key'}
+  });
+
+  adapter = Adapter.create();
+  store.set('adapter', adapter);
+
+  store.load(Person, {id: 1, name: "Maurice Moss"});
+  person = store.find(Person, 1);
+
+  task = Task.createRecord({name: "Get a bike!"});
+
+  task.set('owner', person);
+
+  store.commit();
+
+  expectUrl('/api/v1/task/', 'create URL');
+  expectType("POST");
+  expectData({ name: "Get a bike!", owner_custom_key: "/api/v1/person/1/"});
 
   ajaxHash.success({ id: 1, name: "Get a bike!", owner: "/api/v1/person/1/"}, Task);
 
@@ -463,38 +457,43 @@ test("creating an item with a belongsTo relationship urlifies the Resource URI (
 
 test("creating an item and adding hasMany relationships parses the Resource URI (default key)", function() {
 
+  Person = DS.Model.extend({
+    name: DS.attr('string'),
+    group: DS.belongsTo('Group')
+  });
+  Person.toString = function() {
+    return "Person";
+  };
+
+  equal(true, true);
   store.load(Person, {id: 1, name: "Maurice Moss"});
   store.load(Person, {id: 2, name: "Roy"});
 
   var moss = store.find(Person, 1);
   var roy = store.find(Person, 2);
 
-  group = store.createRecord(Group, {id: 1, name: "Team"});
+  group = Group.createRecord({name: "Team"});
 
-  expectState('new', true, group);
+  //expectState('new', true, group);
   store.commit();
-  expectState('saving', true, group);
+  //expectState('saving', true, group);
 
   expectUrl('/api/v1/group/', 'create Group URL');
   expectType("POST");
   expectData({name: "Team", people: [] });
 
-  ajaxHash.success({ id: 1, name: "Team", people: [] });
+  ajaxHash.success({ id: 1, name: "Team", people: [] }, Group);
 
   group = store.find(Group, 1);
 
   group.get('people').pushObject(moss);
   group.get('people').pushObject(roy);
 
-  // Many to many state must be manually changed
-  expectState('dirty', false, group);
-  group.get('stateManager').goToState('updated');
-  expectState('dirty', true, group);
   store.commit();
-  expectState('saving', true, group);
 
-  expectUrl('/api/v1/group/1/', 'modify Group URL');
+  // HasMany updates through the belongsTo component
+  expectUrl('/api/v1/person/2/', 'modify Group URL');
   expectType("PUT");
-  expectData(JSON.stringify({ id: 1, name: "Team", people: ['/api/v1/person/1/', '/api/v1/person/2/'] }));
+  expectData({name: "Roy", group_id: '/api/v1/group/1/' });
+
 });
-*/
