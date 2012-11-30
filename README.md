@@ -1,4 +1,4 @@
-# ember-data-tastypie-adapter
+# ember-data-tastypie-adapter [![Build Status](https://secure.travis-ci.org/escalant3/ember-data-tastypie-adapter.png?branch=master)](https://travis-ci.org/escalant3/ember-data-tastypie-adapter)
 
 
 ## Motivation
