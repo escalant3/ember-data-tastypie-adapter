@@ -15,7 +15,7 @@
   - import the lib/tastypie_serializer.js and lib/tastypie_adapter.js files, or
   - use the ember-data-tastypie-adapter package on your build process.
   or
-  - use dist/tastypie_adapter.js after running `bundle && bundle exec rakep build`
+  - use dist/tastypie_adapter.js after running `bundle && bundle exec rakep build` or simply `rake dist`
 
 - To use the adapter with your store:
 
@@ -63,11 +63,21 @@ This is the adapter may be useful for someone in the ember.js/django community. 
 This adapter does not support bulkCommits and does not plan to do it soon. django-tastypie REST implementation differs from the Ruby on Rails one, widely used by the ember.js community. Although bulkCommits can be implemented with PATCH operations, I didn't like the resulting adapter.
 
 ## Unit tests
+
+### Browser
 Go to the tests directory and type:
 
     python -m SimpleHTTPServer
 
 Go to http://localhost:8000/ to run the Qunit tests.
+
+### Terminal (PhantomJS)
+
+    # Run once
+    rake test
+
+    # Run continuosly listening for changes (OS X only)
+    rake autotest
 
 ## Versions
 In the meantime ember.js and ember-data reach 1.0, custom compilations have been used to test the adapter.
@@ -76,4 +86,4 @@ In the meantime ember.js and ember-data reach 1.0, custom compilations have been
 bee0807e2da436f0d47fd048f8f6d2f6194751a9
 
 #### ember-data
-7140803d44670b59fdf5c8b8ac18d4d4ac392731
+c036fbe796c9ede047ae7ddcd24a4ebfa0e31f30
