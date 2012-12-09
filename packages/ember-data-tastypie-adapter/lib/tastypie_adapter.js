@@ -56,7 +56,7 @@ DS.DjangoTastypieAdapter = DS.RESTAdapter.extend({
     var data,
         root = this.rootForType(type);
 
-    data = record.toData();
+    data = record.serialize();
 
     this.ajax(this.buildURL(root), "POST", {
       data: data,
@@ -77,7 +77,7 @@ DS.DjangoTastypieAdapter = DS.RESTAdapter.extend({
     id = Em.get(record, 'id');
     root = this.rootForType(type);
 
-    data = record.toData();
+    data = record.serialize();
 
     this.ajax(this.buildURL(root, id), "PUT", {
       data: data,
@@ -134,7 +134,7 @@ DS.DjangoTastypieAdapter = DS.RESTAdapter.extend({
     var url,
         root = this.rootForType(type);
 
-    ids = get(this, 'serializer').serializeIds(ids);
+    ids = this.serializeIds(ids);
 
     // FindMany array through subset of resources
     if (ids instanceof Array) {

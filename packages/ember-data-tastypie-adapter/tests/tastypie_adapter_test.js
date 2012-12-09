@@ -7,7 +7,7 @@ var Group, group;
 var Task, task;
 
 // Ember-data revision (breaking changes)
-var REVISION = 9;
+var REVISION = 10;
 
 module("Django Tastypie Adapter", {
   setup: function() {
@@ -394,7 +394,7 @@ test("the adapter can use custom keys", function() {
 
   var adapter = Adapter.create();
   var person = Person.createRecord({name: "Maurice Moss"});
-  equal(JSON.stringify(adapter.toData(person)), '{"name_custom":"Maurice Moss"}');
+  equal(JSON.stringify(adapter.serialize(person)), '{"name_custom":"Maurice Moss"}');
 });
 
 test("creating an item with a belongsTo relationship urlifies the Resource URI (default key)", function() {
