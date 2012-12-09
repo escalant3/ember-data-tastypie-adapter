@@ -256,6 +256,18 @@ test("finding all people makes a GET to api/v1/person/", function() {
   equal(person, store.find(Person, 1), "the record is now in the store, and can be looked up by ID without another Ajax request");
 });
 
+test("since gets set if needed for pagination", function() {
+  people = store.find(Person);
+
+  expectUrl("/api/v1/person/", "the findAll URL");
+  ajaxHash.success({"objects": [{id: 1, name: "Roy"}, {id: 2, name: "Moss"}],
+            "meta": {limit: 2, next: "nextUrl&offset=2", offset: 0, previous: null, total_count: 25}});
+
+  morePeople = store.find(Person);
+  expectData({offset: '2'});
+  expectUrl("/api/v1/person/", "the findAll URL is the same with the since parameter");
+});
+
 test("finding a person by ID makes a GET to api/v1/person/:id", function() {
   person = store.find(Person, 1);
 
