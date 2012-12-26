@@ -47,38 +47,44 @@ DS.DjangoTastypieSerializer = DS.JSONSerializer.extend({
     Transforms the association fields from Resource URI django-tastypie format
   */
   _deurlify: function(value) {
-    if (!!value) {
+    if (typeof value === "string") {
       return value.split('/').reverse()[1];
+    } else {
+      return value;
     }
   },
 
-  extractHasMany: function(record, hash, relationship) {
+  extractHasMany: function(type, hash, key) {
     var value,
-        self = this,
-        key = this.keyForHasMany(record, relationship),
-        mappings = this.mappingForType(record),
-        mapping = mappings && mappings[relationship];
+      self = this;
 
     value = hash[key];
 
     if (!!value) {
       value.forEach(function(item, i, collection) {
-        collection[i] = (mapping && mapping.embedded === "load") ? item : self._deurlify(item);
+        collection[i] = self._deurlify(item);
       });
     }
 
     return value;
   },
 
-  extractBelongsTo: function(record, hash, key) {
-    var value = hash[key],
-      mappings = this.mappingForType(record),
-      mapping = mappings && mappings[key];
+  extractBelongsTo: function(type, hash, key) {
+    var value = hash[key];
 
     if (!!value) {
-      value = (mapping && mapping.embedded === "load") ? value : this._deurlify(value);
+      value = this._deurlify(value);
     }
     return value;
+  },
+
+  extractEmbeddedHasMany: function(type, hash, key) {
+    return hash[key];
+  },
+
+  extractEmbeddedBelongsTo: function(type, hash, key) {
+    return hash[key];
   }
+
 });
 

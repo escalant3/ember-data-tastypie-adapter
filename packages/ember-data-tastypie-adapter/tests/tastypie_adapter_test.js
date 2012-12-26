@@ -583,3 +583,49 @@ test("can load embedded belongTo records", function() {
   equal("Maurice Moss", moss.get('name'));
   equal("Get a bike!", bike.get('name'));
 });
+
+test("can load embedded hasMany records with camelCased properties", function() {
+
+  var Adapter;
+
+  Adapter = DS.DjangoTastypieAdapter.extend({});
+
+  Person = DS.Model.extend({
+    name: DS.attr('string'),
+    tasksToDo: DS.hasMany('Task')
+  });
+
+
+  Adapter.map('Person', {
+    tasksToDo: {embedded: 'load', key: 'tasksToDo'}
+  });
+
+  adapter = Adapter.create();
+  store.set('adapter', adapter);
+
+
+  var data = {
+    "id": 1,
+    "name": "Maurice Moss",
+    "tasksToDo": [{
+      "name": "Learn German Kitchen",
+      "id": "1",
+      "resource_uri": "\/api\/v1\/task\/1\/"
+    },
+    {
+      "name": "Join Friendface",
+      "id": "2",
+      "resource_uri": "\/api\/v1\/task\/2\/"
+    }],
+    "resource_uri": "\/api\/v1\/person\/1\/"
+  };
+
+  store.load(Person, data);
+
+  var moss = store.find(Person, 1);
+  var german = store.find(Task, 1);
+  var friendface = store.find(Task, 2);
+  equal("Maurice Moss", moss.get('name'));
+  equal("Learn German Kitchen", german.get('name'));
+  equal("Join Friendface", friendface.get('name'));
+});
