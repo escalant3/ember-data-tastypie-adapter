@@ -55,26 +55,28 @@ DS.DjangoTastypieSerializer = DS.JSONSerializer.extend({
   extractHasMany: function(record, hash, relationship) {
     var value,
         self = this,
-        key = this.keyForHasMany(record, relationship);
+        key = this.keyForHasMany(record, relationship),
+        mappings = this.mappingForType(record),
+        mapping = mappings && mappings[relationship];
 
     value = hash[key];
 
     if (!!value) {
       value.forEach(function(item, i, collection) {
-        collection[i] = (relationship.embedded) ? item : self._deurlify(item);
+        collection[i] = (mapping && mapping.embedded === "load") ? item : self._deurlify(item);
       });
     }
 
     return value;
   },
 
-  extractBelongsTo: function(record, hash, relationship) {
-    var value,
-        key = this._keyForBelongsTo(record.constructor, relationship.key);
+  extractBelongsTo: function(record, hash, key) {
+    var value = hash[key],
+      mappings = this.mappingForType(record),
+      mapping = mappings && mappings[key];
 
-    value = hash[key];
     if (!!value) {
-      value = (relationship.options.embedded) ? value : this._deurlify(value);
+      value = (mapping && mapping.embedded === "load") ? value : this._deurlify(value);
     }
     return value;
   }

@@ -509,3 +509,77 @@ test("creating an item and adding hasMany relationships parses the Resource URI 
   expectData({name: "Roy", group_id: '/api/v1/group/1/' });
 
 });
+
+test("can load embedded hasMany records", function() {
+
+  var Adapter;
+
+  Adapter = DS.DjangoTastypieAdapter.extend({});
+
+  Adapter.map('Person', {
+    tasks: {embedded: 'load'}
+  });
+
+  adapter = Adapter.create();
+  store.set('adapter', adapter);
+
+
+  var data = {
+    "id": 1,
+    "name": "Maurice Moss",
+    "tasks": [{
+      "name": "Learn German Kitchen",
+      "id": "1",
+      "resource_uri": "\/api\/v1\/task\/1\/"
+    },
+    {
+      "name": "Join Friendface",
+      "id": "2",
+      "resource_uri": "\/api\/v1\/task\/2\/"
+    }],
+    "resource_uri": "\/api\/v1\/person\/1\/"
+  };
+
+  store.load(Person, data);
+
+  var moss = store.find(Person, 1);
+  var german = store.find(Task, 1);
+  var friendface = store.find(Task, 2);
+  equal("Maurice Moss", moss.get('name'));
+  equal("Learn German Kitchen", german.get('name'));
+  equal("Join Friendface", friendface.get('name'));
+});
+
+
+test("can load embedded belongTo records", function() {
+
+  var Adapter;
+
+  Adapter = DS.DjangoTastypieAdapter.extend({});
+
+  Adapter.map('Task', {
+    owner: {embedded: 'load', key: 'owner'}
+  });
+
+  adapter = Adapter.create();
+  store.set('adapter', adapter);
+
+
+  var data = {
+    "id": 1,
+    "name": "Get a bike!",
+    "owner": {
+      "name": "Maurice Moss",
+      "id": "1",
+      "resource_uri": "\/api\/v1\/person\/1\/"
+    },
+    "resource_uri": "\/api\/v1\/task\/1\/"
+  };
+
+  store.load(Task, data);
+
+  var moss = store.find(Person, 1);
+  var bike = store.find(Task, 1);
+  equal("Maurice Moss", moss.get('name'));
+  equal("Get a bike!", bike.get('name'));
+});
