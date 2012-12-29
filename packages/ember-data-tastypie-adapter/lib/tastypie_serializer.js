@@ -22,7 +22,7 @@ DS.DjangoTastypieSerializer = DS.JSONSerializer.extend({
   addBelongsTo: function(hash, record, key, relationship) {
     var id = get(record, relationship.key+'.id');
 
-    if (!Ember.none(id)) { hash[key] = this.getItemUrl(relationship, id); }
+    if (!Ember.isNone(id)) { hash[key] = this.getItemUrl(relationship, id); }
   },
 
   addHasMany: function(hash, record, key, relationship) {
@@ -40,6 +40,57 @@ DS.DjangoTastypieSerializer = DS.JSONSerializer.extend({
     });
 
     hash[key] = serializedValues;
+  },
+
+  /**
+    Tastypie adapter does not support the sideloading feature
+    */
+  extract: function(loader, json, type) {
+    this.extractMeta(loader, type, json);
+    this.sideload(loader, type, json);
+
+    if (json) {
+      this.extractRecordRepresentation(loader, type, json);
+    }
+  },
+
+  extractMany: function(loader, json, type) {
+    this.extractMeta(loader, type, json);
+    this.sideload(loader, type, json);
+
+    if (json.objects) {
+      loader.loadMany(type, json.objects);
+    }
+  },
+
+  extractMeta: function(loader, type, json) {
+    var meta = json.meta,
+      since = this.extractSince(meta);
+
+    // this registers the id with the store, so it will be passed
+    // into the next call to `findAll`
+    if (since) { loader.sinceForType(type, since); }
+  },
+
+  extractSince: function(meta) {
+    if (meta) {
+      return meta.next;
+    }
+  },
+
+  sideload: function(loader, type, json, root) {
+    var sideloadedType, mappings, loaded = {};
+
+    for (var prop in json) {
+      if (!json.hasOwnProperty(prop)) { continue; }
+      if (prop === this.configOption(type, 'meta')) { continue; }
+
+      sideloadedType = type.typeForRelationship(prop);
+
+      if (!!sideloadedType) {
+        this.sideloadRelationships(loader, sideloadedType, json, prop, loaded);
+      }
+    }
   },
 
   /**
@@ -76,14 +127,6 @@ DS.DjangoTastypieSerializer = DS.JSONSerializer.extend({
       value = this._deurlify(value);
     }
     return value;
-  },
-
-  extractEmbeddedHasMany: function(type, hash, key) {
-    return hash[key];
-  },
-
-  extractEmbeddedBelongsTo: function(type, hash, key) {
-    return hash[key];
   }
 
 });

@@ -7,7 +7,7 @@ var Group, group;
 var Task, task;
 
 // Ember-data revision (breaking changes)
-var REVISION = 10;
+var REVISION = 11;
 
 module("Django Tastypie Adapter", {
   setup: function() {
@@ -125,7 +125,9 @@ test("creating a person makes a POST to /person, with the data hash", function()
   ajaxHash.success({ id: 1, name: "Tom Dale" });
   expectState('saving', false);
 
-  equal(person, store.find(Person, 1), "it is now possible to retrieve the person by the ID supplied");
+  person = store.find(Person, 1);
+
+  equal(person.get('name'), "Tom Dale", "it is now possible to retrieve the person by the ID supplied");
 });
 
 test("updating a person makes a PUT to /people/:id with the data hash", function() {
@@ -151,7 +153,8 @@ test("updating a person makes a PUT to /people/:id with the data hash", function
   ajaxHash.success({ id: 1, name: "Brohuda Brokatz" });
   expectState('saving', false);
 
-  equal(person, store.find(Person, 1), "the same person is retrieved by the same ID");
+  person = store.find(Person, 1);
+
   equal(get(person, 'name'), "Brohuda Brokatz", "the hash should be updated");
 });
 
@@ -540,7 +543,7 @@ test("can load embedded hasMany records", function() {
     "resource_uri": "\/api\/v1\/person\/1\/"
   };
 
-  store.load(Person, data);
+  adapter.didFindRecord(store, Person, data);
 
   var moss = store.find(Person, 1);
   var german = store.find(Task, 1);
@@ -548,6 +551,7 @@ test("can load embedded hasMany records", function() {
   equal("Maurice Moss", moss.get('name'));
   equal("Learn German Kitchen", german.get('name'));
   equal("Join Friendface", friendface.get('name'));
+  equal(2, moss.get('tasks.length'));
 });
 
 
@@ -576,7 +580,7 @@ test("can load embedded belongTo records", function() {
     "resource_uri": "\/api\/v1\/task\/1\/"
   };
 
-  store.load(Task, data);
+  adapter.didFindRecord(store, Task, data);
 
   var moss = store.find(Person, 1);
   var bike = store.find(Task, 1);
@@ -620,7 +624,7 @@ test("can load embedded hasMany records with camelCased properties", function() 
     "resource_uri": "\/api\/v1\/person\/1\/"
   };
 
-  store.load(Person, data);
+  adapter.didFindRecord(store, Person, data);
 
   var moss = store.find(Person, 1);
   var german = store.find(Task, 1);

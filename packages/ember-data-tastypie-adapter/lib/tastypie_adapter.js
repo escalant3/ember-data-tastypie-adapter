@@ -61,7 +61,7 @@ DS.DjangoTastypieAdapter = DS.RESTAdapter.extend({
     this.ajax(this.buildURL(root), "POST", {
       data: data,
       success: function(json) {
-        this.didCreateRecord(store, record, json);
+        this.didSaveRecord(store, type, record, json);
       }
     });
   },
@@ -82,7 +82,7 @@ DS.DjangoTastypieAdapter = DS.RESTAdapter.extend({
     this.ajax(this.buildURL(root, id), "PUT", {
       data: data,
       success: function(json) {
-        this.didUpdateRecord(store, record, json);
+        this.didSaveRecord(store, type, record, json);
       }
     });
   },
@@ -100,34 +100,9 @@ DS.DjangoTastypieAdapter = DS.RESTAdapter.extend({
 
     this.ajax(this.buildURL(root, id), "DELETE", {
       success: function(json) {
-        this.didDeleteRecord(store, type, record, json);
+        this.didSaveRecord(store, type, record, json);
       }
     });
-  },
-
-  /**
-    Mark record as saved in after creating
-  */
-  didCreateRecord: function(store, record, json) {
-    this.didSaveRecord(store, record, json);
-  },
-
-  /**
-    Mark record as saved after updating
-  */
-  didUpdateRecord: function(store, record, json) {
-    this.didSaveRecord(store, record, json);
-  },
-
-  /**
-    Mark record as saved after deleting
-  */
-  didDeleteRecord: function(store, type, record, json) {
-    this.didSaveRecord(store, record);
-  },
-
-  didFindRecord: function(store, type, json, id) {
-    store.load(type, id, json);
   },
 
   findMany: function(store, type, ids) {
@@ -153,18 +128,6 @@ DS.DjangoTastypieAdapter = DS.RESTAdapter.extend({
 
   didFindMany: function(store, type, json) {
     store.loadMany(type, json.objects);
-  },
-
-  didFindAll: function(store, type, json) {
-    var since = this.extractSince(json);
-
-    store.loadMany(type, json.objects);
-
-    // this registers the id with the store, so it will be passed
-    // into the next call to `findAll`
-    if (since) { store.sinceForType(type, since); }
-
-    store.didUpdateAll(type);
   },
 
   didFindQuery: function(store, type, json, recordArray) {
