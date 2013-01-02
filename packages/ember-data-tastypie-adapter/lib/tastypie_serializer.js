@@ -77,20 +77,11 @@ DS.DjangoTastypieSerializer = DS.JSONSerializer.extend({
       return meta.next;
     }
   },
-
+  /**
+   Tastypie default does not support sideloading
+   */
   sideload: function(loader, type, json, root) {
-    var sideloadedType, mappings, loaded = {};
 
-    for (var prop in json) {
-      if (!json.hasOwnProperty(prop)) { continue; }
-      if (prop === this.configOption(type, 'meta')) { continue; }
-
-      sideloadedType = type.typeForRelationship(prop);
-
-      if (!!sideloadedType) {
-        this.sideloadRelationships(loader, sideloadedType, json, prop, loaded);
-      }
-    }
   },
 
   /**
