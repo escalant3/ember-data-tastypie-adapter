@@ -61,7 +61,7 @@ DS.DjangoTastypieAdapter = DS.RESTAdapter.extend({
     this.ajax(this.buildURL(root), "POST", {
       data: data,
       success: function(json) {
-        this.didSaveRecord(store, type, record, json);
+        this.didCreateRecord(store, type, record, json);
       }
     });
   },
