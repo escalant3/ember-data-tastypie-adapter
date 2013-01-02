@@ -69,7 +69,7 @@ Go to the tests directory and type:
 
     python -m SimpleHTTPServer
 
-Go to http://localhost:8000/ to run the Qunit tests.
+Go to http://localhost:8000/tests/ to run the Qunit tests.
 
 ### Terminal (PhantomJS)
 
