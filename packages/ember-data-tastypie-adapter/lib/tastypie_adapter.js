@@ -126,14 +126,6 @@ DS.DjangoTastypieAdapter = DS.RESTAdapter.extend({
     });
   },
 
-  didFindMany: function(store, type, json) {
-    store.loadMany(type, json.objects);
-  },
-
-  didFindQuery: function(store, type, json, recordArray) {
-    recordArray.load(json.objects);
-  },
-
   buildURL: function(record, suffix) {
     var url = this._super(record, suffix);
 
