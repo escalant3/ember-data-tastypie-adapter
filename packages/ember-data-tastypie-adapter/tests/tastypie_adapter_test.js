@@ -588,6 +588,45 @@ test("can load embedded belongTo records", function() {
   equal("Get a bike!", bike.get('name'));
 });
 
+test("can load embedded belongTo records in a find response", function() {
+
+  var Adapter;
+
+  Adapter = DS.DjangoTastypieAdapter.extend({});
+
+  Adapter.map('Task', {
+    owner: {embedded: 'load', key: 'owner'}
+  });
+
+  adapter = Adapter.create();
+  store.set('adapter', adapter);
+
+
+  var data = [
+    {"meta": {},
+    "objects": {
+      "id": 1,
+      "name": "Get a bike!",
+      "owner": {
+        "name": "Maurice Moss",
+        "id": "1",
+        "resource_uri": "\/api\/v1\/person\/1\/"
+       },
+      "resource_uri": "\/api\/v1\/task\/1\/"
+    }
+   }
+  ];
+
+  adapter.didFindRecord(store, Task, data);
+
+  var moss = store.find(Person, 1);
+  var bike = store.find(Task, 1);
+  equal("Maurice Moss", moss.get('name'));
+  equal("Get a bike!", bike.get('name'));
+  equal("Maurice Moss", bike.get('owner').get('name'));
+});
+
+
 test("can load embedded hasMany records with camelCased properties", function() {
 
   var Adapter;
