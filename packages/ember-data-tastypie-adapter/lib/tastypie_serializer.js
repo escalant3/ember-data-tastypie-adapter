@@ -20,7 +20,10 @@ DS.DjangoTastypieSerializer = DS.JSONSerializer.extend({
     Transforms the association fields to Resource URI django-tastypie format
   */
   addBelongsTo: function(hash, record, key, relationship) {
-    var id = get(record, relationship.key+'.id');
+    var id,
+        related = get(record, relationship.key);
+
+    id = get(related, this.primaryKey(related));
 
     if (!Ember.isNone(id)) { hash[key] = this.getItemUrl(relationship, id); }
   },
@@ -54,12 +57,22 @@ DS.DjangoTastypieSerializer = DS.JSONSerializer.extend({
     }
   },
 
-  extractMany: function(loader, json, type) {
-    this.extractMeta(loader, type, json);
+  extractMany: function(loader, json, type, records) {
+
     this.sideload(loader, type, json);
+    this.extractMeta(loader, type, json);
 
     if (json.objects) {
-      loader.loadMany(type, json.objects);
+      var objects = json.objects, references = [];
+      if (records) { records = records.toArray(); }
+
+      for (var i = 0; i < objects.length; i++) {
+        if (records) { loader.updateId(records[i], objects[i]); }
+        var reference = this.extractRecordRepresentation(loader, type, objects[i]);
+        references.push(reference);
+      }
+
+      loader.populateArray(references);
     }
   },
 

@@ -470,7 +470,7 @@ test("creating an item with a belongsTo relationship urlifies the Resource URI (
 
 });
 
-test("creating an item and adding hasMany relationships parses the Resource URI (default key)", function() {
+test("adding hasMany relationships parses the Resource URI (default key)", function() {
 
   Person = DS.Model.extend({
     name: DS.attr('string'),
@@ -483,26 +483,14 @@ test("creating an item and adding hasMany relationships parses the Resource URI 
   equal(true, true);
   store.load(Person, {id: 1, name: "Maurice Moss"});
   store.load(Person, {id: 2, name: "Roy"});
+  store.load(Group, {id: 1, name: "Team"});
 
   var moss = store.find(Person, 1);
   var roy = store.find(Person, 2);
 
-  group = Group.createRecord({name: "Team"});
-
-  //expectState('new', true, group);
-  store.commit();
-  //expectState('saving', true, group);
-
-  expectUrl('/api/v1/group/', 'create Group URL');
-  expectType("POST");
-  expectData({name: "Team", people: [] });
-
-  ajaxHash.success({ id: 1, name: "Team", people: [] }, Group);
-
   group = store.find(Group, 1);
-
-  group.get('people').pushObject(moss);
-  group.get('people').pushObject(roy);
+  get(group, 'people').pushObject(moss);
+  get(group, 'people').pushObject(roy);
 
   store.commit();
 
