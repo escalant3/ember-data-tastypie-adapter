@@ -578,7 +578,8 @@ test("can load embedded belongTo records", function() {
 
 test("can load embedded belongTo records in a find response", function() {
 
-  var Adapter;
+  var Adapter,
+      recordArray;
 
   Adapter = DS.DjangoTastypieAdapter.extend({});
 
@@ -590,9 +591,9 @@ test("can load embedded belongTo records in a find response", function() {
   store.set('adapter', adapter);
 
 
-  var data = [
-    {"meta": {},
-    "objects": {
+  var data = {
+    "meta": {},
+    "objects": [{
       "id": 1,
       "name": "Get a bike!",
       "owner": {
@@ -601,11 +602,11 @@ test("can load embedded belongTo records in a find response", function() {
         "resource_uri": "\/api\/v1\/person\/1\/"
        },
       "resource_uri": "\/api\/v1\/task\/1\/"
-    }
-   }
-  ];
+    }]
+   };
 
-  adapter.didFindRecord(store, Task, data);
+  recordArray = store.findQuery({limit:1});
+  adapter.didFindQuery(store, Task, data, recordArray);
 
   var moss = store.find(Person, 1);
   var bike = store.find(Task, 1);
