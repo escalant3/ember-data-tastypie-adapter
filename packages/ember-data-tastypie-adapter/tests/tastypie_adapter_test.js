@@ -7,7 +7,7 @@ var Group, group;
 var Task, task;
 
 // Ember-data revision (breaking changes)
-var REVISION = 11;
+var REVISION = 12;
 
 module("Django Tastypie Adapter", {
   setup: function() {
