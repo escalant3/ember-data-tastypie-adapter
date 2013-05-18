@@ -49,7 +49,9 @@ DS.DjangoTastypieSerializer = DS.JSONSerializer.extend({
         serializedValues.push(item.serialize());
       } else {
         id = get(item, self.primaryKey(item));
-        serializedValues.push(self.getItemUrl(relationship, id));
+        if (!Ember.isNone(id)) {
+          serializedValues.push(self.getItemUrl(relationship, id));
+        }
       }
     });
 
