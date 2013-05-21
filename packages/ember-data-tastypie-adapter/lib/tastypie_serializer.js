@@ -21,25 +21,38 @@ DS.DjangoTastypieSerializer = DS.JSONSerializer.extend({
   */
   addBelongsTo: function(hash, record, key, relationship) {
     var id,
-        related = get(record, relationship.key);
+        related = get(record, relationship.key),
+        embedded = this.embeddedType(record.constructor, key);
 
-    id = get(related, this.primaryKey(related));
+    if (embedded === 'always') {
+      hash[key] = related.serialize();
 
-    if (!Ember.isNone(id)) { hash[key] = this.getItemUrl(relationship, id); }
+    } else {
+      id = get(related, this.primaryKey(related));
+
+      if (!Ember.isNone(id)) { hash[key] = this.getItemUrl(relationship, id); }
+    }
   },
 
   addHasMany: function(hash, record, key, relationship) {
     var self = this,
         serializedValues = [],
-        id = null;
+        id = null,
+        embedded = this.embeddedType(record.constructor, key);
 
     key = this.keyForHasMany(relationship.type, key);
 
     value = record.get(key) || [];
 
     value.forEach(function(item) {
-      id = get(item, self.primaryKey(item));
-      serializedValues.push(self.getItemUrl(relationship, id));
+      if (embedded === 'always') {
+        serializedValues.push(item.serialize());
+      } else {
+        id = get(item, self.primaryKey(item));
+        if (!Ember.isNone(id)) {
+          serializedValues.push(self.getItemUrl(relationship, id));
+        }
+      }
     });
 
     hash[key] = serializedValues;
