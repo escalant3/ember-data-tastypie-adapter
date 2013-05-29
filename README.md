@@ -22,14 +22,12 @@
 Basic code to use it with the last ember-data revision:
 
       App.store = DS.Store.create({
-        revision: 12,
         adapter: DS.DjangoTastypieAdapter.extend()
       });
 
 Creating with several parameters:
 
       App.store = DS.Store.create({
-        revision: 12,
         adapter: DS.DjangoTastypieAdapter.extend({
           serverDomain: "http://yourDomain.com",
           namespace: "api/v1"
@@ -83,8 +81,8 @@ Go to http://localhost:8000/tests/ to run the Qunit tests.
 In the meantime ember.js and ember-data reach 1.0, custom compilations have been used to test the adapter.
 
 #### ember.js
-1.0.0-rc.2
+1.0.0-rc.4
 
 #### ember-data
-a29070dadaddbf7b727c98a5f052c91c91a72bff
+0.13
 
