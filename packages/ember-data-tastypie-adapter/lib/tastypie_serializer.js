@@ -2,6 +2,14 @@ var get = Ember.get, set = Ember.set;
 
 DS.DjangoTastypieSerializer = DS.JSONSerializer.extend({
 
+  init: function() {
+    this._super();
+
+    this.configure({
+      meta: 'meta',
+      since: 'next'
+    });
+  },
 
   getItemUrl: function(meta, id){
     var url;
@@ -90,19 +98,20 @@ DS.DjangoTastypieSerializer = DS.JSONSerializer.extend({
   },
 
   extractMeta: function(loader, type, json) {
-    var meta = json.meta,
-      since = this.extractSince(meta);
+    var meta = this.configOption(type, 'meta'),
+        data = json, value;
 
-    // this registers the id with the store, so it will be passed
-    // into the next call to `findAll`
-    if (since) { loader.sinceForType(type, since); }
-  },
-
-  extractSince: function(meta) {
-    if (meta) {
-      return meta.next;
+    if(meta && json[meta]){
+      data = json[meta];
     }
+
+    this.metadataMapping.forEach(function(property, key){
+      if(value = data[property]){
+        loader.metaForType(type, key, value);
+      }
+    });
   },
+
   /**
    Tastypie default does not support sideloading
    */
