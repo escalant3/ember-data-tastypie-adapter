@@ -86,11 +86,11 @@ In the meantime ember.js and ember-data reach 1.0, custom compilations have been
 
 
 ## Contributors
-- Diego Muñoz Escalante (@escalant3)
-- Pepe Cano (@ppcano)
-- @olofsj
-- Mitchel Kelonye (@kelonye)
-- Pedro Kiefer (@pedrokiefer)
+- [Diego Muñoz Escalante](https://github.com/escalant3)
+- [Pepe Cano](https://github.com/ppcano)
+- [olofsj](https://github.com/olofsj)
+- [Mitchel Kelonye](https://github.com/kelonye)
+- [Pedro Kiefer](https://github.com/pedrokiefer)
 
 ## License
 The MIT License (MIT)
