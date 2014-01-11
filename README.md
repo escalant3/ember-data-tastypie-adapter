@@ -84,3 +84,16 @@ In the meantime ember.js and ember-data reach 1.0, custom compilations have been
 #### ember-data
 1.0.0-beta.5+pre.69cb8b87
 
+
+## Contributors
+- Diego Muñoz Escalante (@escalant3)
+- Pepe Cano (@ppcano)
+- @olofsj
+- Mitchel Kelonye (@kelonye)
+- Pedro Kiefer (@pedrokiefer)
+
+## License
+The MIT License (MIT)
+
+Copyright (c) 2014 Diego Muñoz Escalante
+
