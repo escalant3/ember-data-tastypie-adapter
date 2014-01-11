@@ -19,26 +19,24 @@
 
 - To use the adapter with your store:
 
-Basic code to use it with the last ember-data revision:
+Basic code to use the adapter:
 
-      App.store = DS.Store.create({
-        adapter: DS.DjangoTastypieAdapter.extend()
-      });
+      App.ApplicationAdapter = DS.DjangoTastypieAdapter.extend({});
+      App.ApplicationSerializer = DS.DjangoTastypieSerializer.extend({});
+
 
 Creating with several parameters:
 
-      App.store = DS.Store.create({
-        adapter: DS.DjangoTastypieAdapter.extend({
-          serverDomain: "http://yourDomain.com",
-          namespace: "api/v1"
-        })
+      App.ApplicationAdapter = DS.DjangoTastypieAdapter.extend({
+        serverDomain: "http://yourDomain.com",
+        namespace: "api/v1"
       });
 
 
 #### python/django side
 The standard django-tastypie configuration will do the work. However, some details are important:
 
-i) ember-data always expect data in return (except in deletions). Make sure to configure your Resources with the meta option if you are going to perform POST or PUT operations:
+i) ember-data always expects data in return (except in deletions). Make sure to configure your Resources with the meta option if you are going to perform POST or PUT operations:
 
 
     class Meta:
@@ -55,7 +53,7 @@ ii) obviously, the permissions must be configured in the server to allow GET, PO
 
 
 ## Contributing
-This is the adapter may be useful for someone in the ember.js/django community. If you want to extend it, please open issues and send pull requests.
+This adapter may be useful for someone in the ember.js/django community. If you want to extend it, please open issues and send pull requests.
 
 #### Bulk Commits note
 This adapter does not support bulkCommits and does not plan to do it soon. django-tastypie REST implementation differs from the Ruby on Rails one, widely used by the ember.js community. Although bulkCommits can be implemented with PATCH operations, I didn't like the resulting adapter.
@@ -81,8 +79,8 @@ Go to http://localhost:8000/tests/ to run the Qunit tests.
 In the meantime ember.js and ember-data reach 1.0, custom compilations have been used to test the adapter.
 
 #### ember.js
-1.0.0-rc.4
+1.3.1+pre.d6a23272
 
 #### ember-data
-0.13
+1.0.0-beta.5+pre.69cb8b87
 
