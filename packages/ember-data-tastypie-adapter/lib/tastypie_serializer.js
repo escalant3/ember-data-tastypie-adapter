@@ -171,6 +171,25 @@ DS.DjangoTastypieSerializer = DS.RESTSerializer.extend({
     }, this);
   },
 
+  // DELETE ME
+  // This shouldn't be necessary when Beta6 is released
+  normalizeUsingDeclaredMapping: function(type, hash) {
+    var attrs = get(this, 'attrs'), payloadKey, key;
+
+    if (attrs) {
+      for (key in attrs) {
+        payloadKey = attrs[key];
+        if (payloadKey && payloadKey.key) {
+          payloadKey = payloadKey.key;
+        }
+        if (typeof payloadKey === 'string') {
+          hash[key] = hash[payloadKey];
+          delete hash[payloadKey];
+        }
+      }
+    }
+  },
+
   extractArray: function(store, primaryType, payload) {
     payload[primaryType.typeKey] = payload.objects;
     delete payload.objects;
@@ -186,20 +205,24 @@ DS.DjangoTastypieSerializer = DS.RESTSerializer.extend({
     return this._super(store, primaryType, newPayload, recordId, requestType);
   },
 
-  isEmbedded: function(relOptions) {
-    return !!relOptions && (relOptions.embedded === 'load' || relOptions.embedded === 'always');
+  isEmbedded: function(config) {
+    return !!config && (config.embedded === 'load' || config.embedded === 'always');
   },
 
   extractEmbeddedFromPayload: function(store, type, payload) {
     var self = this;
-    type.eachRelationship(function(key, relationship) {
-      var relOptions = relationship.options;
+    var attrs = get(this, 'attrs');
 
-      if (self.isEmbedded(relOptions)) {
+    if (!attrs) { return; }
+
+    type.eachRelationship(function(key, relationship) {
+      var config = attrs[key];
+
+      if (self.isEmbedded(config)) {
         if (relationship.kind === 'hasMany') {
-          self.extractEmbeddedFromHasMany(store, key, relationship, payload, relOptions);
+          self.extractEmbeddedFromHasMany(store, key, relationship, payload, config);
         } else if (relationship.kind === 'belongsTo') {
-          self.extractEmbeddedFromBelongsTo(store, key, relationship, payload, relOptions);
+          self.extractEmbeddedFromBelongsTo(store, key, relationship, payload, config);
         }
       }
     });
