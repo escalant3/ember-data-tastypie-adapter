@@ -2,6 +2,14 @@ var get = Ember.get, set = Ember.set;
 
 DS.DjangoTastypieSerializer = DS.RESTSerializer.extend({
 
+  keyForAttribute: function(attr) {
+    return Ember.String.decamelize(attr);
+  },
+
+  keyForRelationship: function(attr) {
+    return Ember.String.decamelize(attr);
+  },
+
   getItemUrl: function(meta, id){
     var url;
 
@@ -131,6 +139,11 @@ DS.DjangoTastypieSerializer = DS.RESTSerializer.extend({
 
   resourceUriToId: function (resourceUri){
     return resourceUri.split('/').reverse()[1];
+  },
+
+  normalizeId: function (hash) {
+    hash.id = this.resourceUriToId(hash.resource_uri);
+    delete hash.resource_uri;
   },
 
   normalizeRelationships: function (type, hash) {
