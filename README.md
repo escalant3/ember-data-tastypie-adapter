@@ -90,7 +90,9 @@ In the meantime ember.js and ember-data reach 1.0, custom compilations have been
 - [Pepe Cano](https://github.com/ppcano)
 - [olofsj](https://github.com/olofsj)
 - [Mitchel Kelonye](https://github.com/kelonye)
+- [Dzmitry Dzemidzenka](https://github.com/ddemid)
 - [Pedro Kiefer](https://github.com/pedrokiefer)
+
 
 ## License
 The MIT License (MIT)
