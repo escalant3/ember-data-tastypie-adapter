@@ -233,6 +233,8 @@ DS.DjangoTastypieSerializer = DS.RESTSerializer.extend({
     var serializer = store.serializerFor(relationship.type.typeKey),
     primaryKey = get(this, 'primaryKey');
 
+    key = config.key ? config.key : this.keyForAttribute(key);
+
     var ids = [];
 
     if (!payload[key]) {
@@ -242,7 +244,7 @@ DS.DjangoTastypieSerializer = DS.RESTSerializer.extend({
     Ember.EnumerableUtils.forEach(payload[key], function(data) {
       var embeddedType = store.modelFor(relationship.type.typeKey);
 
-      self.extractEmbeddedFromPayload.call(serializer, store, embeddedType, data);
+      serializer.extractEmbeddedFromPayload(store, embeddedType, data);
 
       data = serializer.normalize(embeddedType, data, embeddedType.typeKey);
 
@@ -257,6 +259,8 @@ DS.DjangoTastypieSerializer = DS.RESTSerializer.extend({
     var serializer = store.serializerFor(relationship.type.typeKey),
       primaryKey = get(this, 'primaryKey');
 
+    key = config.key ? config.key : this.keyForAttribute(key);
+
     if (!payload[key]) {
       return;
     }
@@ -264,7 +268,7 @@ DS.DjangoTastypieSerializer = DS.RESTSerializer.extend({
     var data = payload[key];
     var embeddedType = store.modelFor(relationship.type.typeKey);
 
-    extractEmbeddedFromPayload.call(serializer, store, embeddedType, data);
+    serializer.extractEmbeddedFromPayload(store, embeddedType, data);
 
     data = serializer.normalize(embeddedType, data, embeddedType.typeKey);
     payload[key] = serializer.relationshipToResourceUri(relationship, data);
