@@ -191,10 +191,13 @@ DS.DjangoTastypieSerializer = DS.RESTSerializer.extend({
   },
 
   extractArray: function(store, primaryType, payload) {
-    payload[primaryType.typeKey] = payload.objects;
-    delete payload.objects;
-
-    return this._super(store, primaryType, payload);
+    var records = [];
+    var self = this;
+    payload.objects.forEach(function (hash) {
+      self.extractEmbeddedFromPayload(store, primaryType, hash);
+      records.push(self.normalize(primaryType, hash, primaryType.typeKey));
+    });
+    return records;
   },
 
   extractSingle: function(store, primaryType, payload, recordId, requestType) {
