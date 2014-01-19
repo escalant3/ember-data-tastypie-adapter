@@ -92,6 +92,7 @@ In the meantime ember.js and ember-data reach 1.0, custom compilations have been
 - [Mitchel Kelonye](https://github.com/kelonye)
 - [Dzmitry Dzemidzenka](https://github.com/ddemid)
 - [Pedro Kiefer](https://github.com/pedrokiefer)
+- [Alex Goodwin](https://github.com/go1dfish)
 
 
 ## License

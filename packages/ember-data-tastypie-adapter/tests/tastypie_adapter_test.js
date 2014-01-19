@@ -281,7 +281,7 @@ test("findByIds generates a tastypie style url", function() {
 });
 */
 
-/*
+
 test("finding many people by a list of IDs", function() {
   Group.reopen({ people: DS.hasMany('person', { async: true }) });
 
@@ -311,7 +311,7 @@ test("finding many people by a list of IDs", function() {
     deepEqual(people.toArray(), [ rein, tom, yehuda ], "The correct records are in the array");
   }));
 });
-*/
+
 
 test("finding people by a query", function() {
   var people, rein, tom, yehuda;
