@@ -53,6 +53,11 @@ DS.DjangoTastypieAdapter = DS.RESTAdapter.extend({
     return url;
   },
 
+  findMany: function(store, type, ids) {
+    return this.ajax(this.buildURL(type.typeKey) + 'set/' + ids.join(';'), 'GET');
+  },
+
+
   /**
      The actual nextUrl is being stored. The offset must be extracted from
      the string to do a new call.
