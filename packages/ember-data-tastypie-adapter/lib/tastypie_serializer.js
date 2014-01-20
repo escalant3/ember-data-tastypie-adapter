@@ -42,13 +42,15 @@ DS.DjangoTastypieSerializer = DS.RESTSerializer.extend({
   sideload: function(loader, type, json, root) {
   },
 
-  resourceUriToId: function (resourceUri){
+  resourceUriToId: function (resourceUri) {
     return resourceUri.split('/').reverse()[1];
   },
 
   normalizeId: function (hash) {
-    hash.id = this.resourceUriToId(hash.resource_uri);
-    delete hash.resource_uri;
+    if(hash.resource_uri) {
+      hash.id = this.resourceUriToId(hash.resource_uri);
+      delete hash.resource_uri;
+    }
   },
 
   normalizeRelationships: function (type, hash) {
