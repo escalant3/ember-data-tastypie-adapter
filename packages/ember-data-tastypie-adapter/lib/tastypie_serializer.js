@@ -47,7 +47,7 @@ DS.DjangoTastypieSerializer = DS.RESTSerializer.extend({
   },
 
   normalizeId: function (hash) {
-    if(hash.resource_uri) {
+    if (hash.resource_uri) {
       hash.id = this.resourceUriToId(hash.resource_uri);
       delete hash.resource_uri;
     }
@@ -76,25 +76,6 @@ DS.DjangoTastypieSerializer = DS.RESTSerializer.extend({
         }
       }
     }, this);
-  },
-
-  // DELETE ME
-  // This shouldn't be necessary when Beta6 is released
-  normalizeUsingDeclaredMapping: function(type, hash) {
-    var attrs = get(this, 'attrs'), payloadKey, key;
-
-    if (attrs) {
-      for (key in attrs) {
-        payloadKey = attrs[key];
-        if (payloadKey && payloadKey.key) {
-          payloadKey = payloadKey.key;
-        }
-        if (typeof payloadKey === 'string') {
-          hash[key] = hash[payloadKey];
-          delete hash[payloadKey];
-        }
-      }
-    }
   },
 
   extractArray: function(store, primaryType, payload) {
