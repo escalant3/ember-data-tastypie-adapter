@@ -76,13 +76,13 @@ Go to http://localhost:8000/tests/ to run the Qunit tests.
     rake autotest
 
 ## Versions
-In the meantime ember.js and ember-data reach 1.0, custom compilations have been used to test the adapter.
+In the meantime ember-data reachs 1.0, custom compilations have been used to test the adapter.
 
 #### ember.js
 1.3.1+pre.d6a23272
 
 #### ember-data
-1.0.0-beta.5+pre.69cb8b87
+1.0.0-beta.6
 
 
 ## Contributors
@@ -93,6 +93,7 @@ In the meantime ember.js and ember-data reach 1.0, custom compilations have been
 - [Dzmitry Dzemidzenka](https://github.com/ddemid)
 - [Pedro Kiefer](https://github.com/pedrokiefer)
 - [Alex Goodwin](https://github.com/go1dfish)
+- [Aaron Ghent](https://github.com/AaronGhent)
 
 
 ## License
