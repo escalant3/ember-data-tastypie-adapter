@@ -554,6 +554,7 @@ test("serialize with embedded objects", function() {
   deepEqual(json, {
     name: "Villain League",
     villains: [{
+      id: get(tom, "id"),
       first_name: "Tom",
       last_name: "Dale",
       home_planet: '/api/v1/homePlanet/' + get(league, "id") +'/',

@@ -201,6 +201,11 @@ DS.DjangoTastypieSerializer = DS.RESTSerializer.extend({
       if (this.isEmbedded(config)) {
         json[key] = get(record, key).map(function (relation) {
           var data = relation.serialize();
+
+          // Embedded objects need the ID for update operations
+          var id = relation.get('id');
+          if (!!id) { data.id = id; }
+
           return data;
         });
       } else {
