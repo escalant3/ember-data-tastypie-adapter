@@ -61,14 +61,14 @@ Ember-data (and this adapter) supports two kind of relationship fields: `hasMany
         - Ember-data model should define the relationship with `async: true` option
     - Example model definition
 
-        App.Comment = DS.Model.extend({
-            text: attr("string")
-        })
+            App.Comment = DS.Model.extend({
+                text: attr("string")
+            })
 
-        App.Post = DS.Model.extend({
-            text: attr("string"),
-            comments: hasMany("comment", {async: true})
-        })
+            App.Post = DS.Model.extend({
+                text: attr("string"),
+                comments: hasMany("comment", {async: true})
+            })
 
 - Embedded Resources
     - The related model's data is embedded in the response of the parent model, so there is no need to fetch the related model using its own resource uri
@@ -77,14 +77,14 @@ Ember-data (and this adapter) supports two kind of relationship fields: `hasMany
         - Ember-data model should define the relationship without `async: true` option. async is false by default.
     - Example model definition
 
-        App.Comment = DS.Model.extend({
-            text: attr("string")
-        })
+            App.Comment = DS.Model.extend({
+                text: attr("string")
+            })
 
-        App.Post = DS.Model.extend({
-            text: attr("string"),
-            comments: hasMany("comment")
-        })
+            App.Post = DS.Model.extend({
+                text: attr("string"),
+                comments: hasMany("comment")
+            })
 
 **Note:** In both the cases, (for now) it is mandatory for the related models to have their own URLs to support proper CRUD operations
 
