@@ -33,7 +33,7 @@ Creating with several parameters:
       });
 
 
-#### python/django side
+#### Python/Django side
 The standard django-tastypie configuration will do the work. However, some details are important:
 
 i) ember-data always expects data in return (except in deletions). Make sure to configure your Resources with the meta option if you are going to perform POST or PUT operations:
@@ -50,7 +50,43 @@ ii) obviously, the permissions must be configured in the server to allow GET, PO
         detail_allowed_methods = ['get', 'post', 'put', 'delete']
         always_return_data = True
 
+#### Ember-data relationship fields
+Ember-data (and this adapter) supports two kind of relationship fields: `hasMany` and `belongsTo`. There are two methods of handling relationship fields with tastypie:
 
+- Async Resources
+    - The related data is not present in the response of the parent model, so ember-data uses promise objects to represent such fields
+    - Related data is fetched asynchronously, when the code tries to access the field of the model
+    - This adaptor expects tastypie to return only related resource urls in the response, so:
+        - Tastypie resources **must not** use `full=True` in the relationship fields
+        - Ember-data model should define the relationship with `async: true` option
+    - Example model definition
+
+        App.Comment = DS.Model.extend({
+            text: attr("string")
+        })
+
+        App.Post = DS.Model.extend({
+            text: attr("string"),
+            comments: hasMany("comment", {async: true})
+        })
+
+- Embedded Resources
+    - The related model's data is embedded in the response of the parent model, so there is no need to fetch the related model using its own resource uri
+    - This adaptor expects tastypie to return full data of related model in the same response:
+        - Tastypie resources must use `full=True` in the relationship fields
+        - Ember-data model should define the relationship without `async: true` option. async is false by default.
+    - Example model definition
+
+        App.Comment = DS.Model.extend({
+            text: attr("string")
+        })
+
+        App.Post = DS.Model.extend({
+            text: attr("string"),
+            comments: hasMany("comment")
+        })
+
+**Note:** In both the cases, (for now) it is mandatory for the related models to have their own URLs to support proper CRUD operations
 
 ## Contributing
 This adapter may be useful for someone in the ember.js/django community. If you want to extend it, please open issues and send pull requests.
