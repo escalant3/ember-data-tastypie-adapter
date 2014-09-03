@@ -209,7 +209,7 @@ DS.DjangoTastypieSerializer = DS.RESTSerializer.extend({
           return data;
         });
       } else {
-        json[key] = get(record, relationship.key).map(function (next){
+        json[key] = get(record, 'data.' + relationship.key).map(function (next) {
           return this.relationshipToResourceUri(relationship, next);
         }, this);
       }
