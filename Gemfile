@@ -12,6 +12,5 @@ gem 'rb-fsevent', '~> 0.9.1'
 group :development do
   gem "rack"
   gem "github_downloads"
-  gem "ember-docs", :git => "https://github.com/emberjs/docs-generator.git"
   gem "kicker"
 end
