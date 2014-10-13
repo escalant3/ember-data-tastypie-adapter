@@ -209,7 +209,22 @@ DS.DjangoTastypieSerializer = DS.RESTSerializer.extend({
           return data;
         });
       } else {
-        json[key] = get(record, relationship.key).map(function (next){
+        var relationData = get(record, relationship.key); 
+        
+        // We can't deal with promises here. We need actual data
+        if (relationData instanceof DS.PromiseArray) {
+          // We need the content of the promise. Make sure it is fulfilled
+          if (relationData.get('isFulfilled')) {
+            // Use the fulfilled array
+            relationData = relationData.get('content');
+          } else {
+            // If the property hasn't been fulfilled then it hasn't changed.
+            // Fall back to the internal data. It contains enough for relationshipToResourceUri.
+            relationData = get(record, 'data.' + relationship.key) || [];
+          }
+        }
+        
+        json[key] = relationData.map(function (next){
           return this.relationshipToResourceUri(relationship, next);
         }, this);
       }
