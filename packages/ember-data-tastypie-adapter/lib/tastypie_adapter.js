@@ -5,7 +5,7 @@ function rejectionHandler(reason) {
   throw reason;
 }
 
-DS.DjangoTastypieAdapter = DS.RESTAdapter.extend({
+var DjangoTastypieAdapter = DS.RESTAdapter.extend({
   /**
     Set this parameter if you are planning to do cross-site
     requests to the destination domain. Remember trailing slash
@@ -54,7 +54,7 @@ DS.DjangoTastypieAdapter = DS.RESTAdapter.extend({
   },
 
   findMany: function(store, type, ids) {
-    return this.ajax('%@set/%@/'.fmt(this.buildURL(type.typeKey), ids.join(';')),
+    return this.ajax(Ember.String.fmt('%@set/%@/', this.buildURL(type.typeKey), ids.join(';')),
                      'GET');
   },
 
@@ -97,3 +97,5 @@ DS.DjangoTastypieAdapter = DS.RESTAdapter.extend({
     return type;
   }
 });
+
+export default DjangoTastypieAdapter;

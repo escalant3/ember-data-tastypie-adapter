@@ -1,5 +1,13 @@
-language: ruby
-rvm:
-  - 1.9.2
-bundler_args: --without development
-script: "bundle exec rake test"
+language: node_js
+node_js:
+  - "0.10"
+install:
+- "npm install"
+- "bower install"
+- "npm run-script dist"
+script:
+  - npm run-script test
+env:
+  global:
+  - BROCCOLI_ENV="production"
+  - EMBER_ENV="production"
