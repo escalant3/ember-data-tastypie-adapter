@@ -15,7 +15,7 @@
   - import the lib/tastypie_serializer.js and lib/tastypie_adapter.js files, or
   - use the ember-data-tastypie-adapter package on your build process.
   or
-  - use dist/tastypie_adapter.js after running `bundle && bundle exec rakep build` or simply `rake dist`
+  - use dist/ember-data-tastypie-adapter.js after running `npm install && bower install && broccoli build dist`.
 
 - To use the adapter with your store:
 
@@ -61,19 +61,16 @@ This adapter does not support bulkCommits and does not plan to do it soon. djang
 ## Unit tests
 
 ### Browser
-Go to the tests directory and type:
+Go to the project directory and type:
 
-    python -m SimpleHTTPServer
+    testem
 
-Go to http://localhost:8000/tests/ to run the Qunit tests.
+Go to http://localhost:7357/ to run the Qunit tests.
 
 ### Terminal (PhantomJS)
 
     # Run once
-    rake test
-
-    # Run continuosly listening for changes (OS X only)
-    rake autotest
+    testem ci
 
 ## Versions
 In the meantime ember-data reachs 1.0, custom compilations have been used to test the adapter.
