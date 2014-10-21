@@ -1,6 +1,6 @@
 var get = Ember.get, set = Ember.set;
 
-DS.DjangoTastypieSerializer = DS.RESTSerializer.extend({
+var DjangoTastypieSerializer = DS.RESTSerializer.extend({
 
   keyForAttribute: function(attr) {
     return Ember.String.decamelize(attr);
@@ -232,4 +232,4 @@ DS.DjangoTastypieSerializer = DS.RESTSerializer.extend({
   }
 });
 
-
+export default DjangoTastypieSerializer;

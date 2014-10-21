@@ -1,5 +1,17 @@
 syntax: glob
 
+.bundle
+bundle
+tmp/
+tests/source/
+dist/
+
+docs/build/
+docs/node_modules/
+
+bower_components/
+node_modules/
+
 Gemfile.lock
 dist
 tmp

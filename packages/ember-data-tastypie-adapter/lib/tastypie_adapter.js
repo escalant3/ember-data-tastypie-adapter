@@ -5,7 +5,7 @@ function rejectionHandler(reason) {
   throw reason;
 }
 
-DS.DjangoTastypieAdapter = DS.RESTAdapter.extend({
+var DjangoTastypieAdapter = DS.RESTAdapter.extend({
   /**
     Set this parameter if you are planning to do cross-site
     requests to the destination domain. Remember trailing slash
@@ -97,3 +97,5 @@ DS.DjangoTastypieAdapter = DS.RESTAdapter.extend({
     return type;
   }
 });
+
+export default DjangoTastypieAdapter;

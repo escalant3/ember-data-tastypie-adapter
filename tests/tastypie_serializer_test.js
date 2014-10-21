@@ -1,1 +1,0 @@
-../packages/ember-data-tastypie-adapter/tests/tastypie_serializer_test.js

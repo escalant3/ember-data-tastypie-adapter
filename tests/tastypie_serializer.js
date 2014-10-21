@@ -1,1 +1,0 @@
-../packages/ember-data-tastypie-adapter/lib/tastypie_serializer.js

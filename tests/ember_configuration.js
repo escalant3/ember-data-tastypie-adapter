@@ -1,12 +1,13 @@
-/*globals EmberDev ENV QUnit */
+/* globals ENV, QUnit */
 
-(function() {
+(function (){
   window.Ember = window.Ember || {};
 
   Ember.config = {};
   Ember.testing = true;
+  Ember.LOG_VERSION = false;
 
-  window.ENV = { TESTING: true };
+  window.ENV = { TESTING: true, LOG_VERSION: false };
 
   var extendPrototypes = QUnit.urlParams.extendprototypes;
   ENV['EXTEND_PROTOTYPES'] = !!extendPrototypes;
@@ -61,14 +62,14 @@
       adapter: adapter
     }));
 
-    container.register('serializer:_default', DS.JSONSerializer);
-    container.register('serializer:_rest', DS.RESTSerializer);
-    container.register('adapter:_rest', DS.RESTAdapter);
+    container.register('serializer:-default', DS.JSONSerializer);
+    container.register('serializer:-rest', DS.RESTSerializer);
+    container.register('adapter:-rest', DS.RESTAdapter);
 
     container.injection('serializer', 'store', 'store:main');
 
-    env.serializer = container.lookup('serializer:_default');
-    env.restSerializer = container.lookup('serializer:_rest');
+    env.serializer = container.lookup('serializer:-default');
+    env.restSerializer = container.lookup('serializer:-rest');
     env.store = container.lookup('store:main');
     env.adapter = env.store.get('defaultAdapter');
 
@@ -79,7 +80,7 @@
     return setupStore(options).store;
   };
 
-  var syncForTest = function(fn) {
+  var syncForTest = window.syncForTest = function(fn) {
     var callSuper;
 
     if (typeof fn !== "function") { callSuper = true; }
@@ -125,13 +126,13 @@
     });
   };
 
-
+  QUnit.begin(function(){
     Ember.RSVP.configure('onerror', function(reason) {
       // only print error messages if they're exceptions;
       // otherwise, let a future turn of the event loop
       // handle the error.
       if (reason && reason instanceof Error) {
-        Ember.Logger.log(reason, reason.stack)
+        Ember.Logger.log(reason, reason.stack);
         throw reason;
       }
     });
@@ -151,13 +152,16 @@
       filter: syncForTest(),
       find: syncForTest(),
       findMany: syncForTest(),
+      findHasMany: syncForTest(),
       findByIds: syncForTest(),
       didSaveRecord: syncForTest(),
       didSaveRecords: syncForTest(),
       didUpdateAttribute: syncForTest(),
       didUpdateAttributes: syncForTest(),
       didUpdateRelationship: syncForTest(),
-      didUpdateRelationships: syncForTest()
+      didUpdateRelationships: syncForTest(),
+      scheduleFetch: syncForTest(),
+      scheduleFetchMany: syncForTest()
     });
 
     DS.Model.reopen({
@@ -165,9 +169,30 @@
       reload: syncForTest(),
       deleteRecord: syncForTest(),
       dataDidChange: Ember.observer(syncForTest(), 'data'),
-      updateRecordArraysLater: syncForTest()
+      updateRecordArraysLater: syncForTest(),
+      updateRecordArrays: syncForTest()
     });
 
+    DS.ManyArray.reopen({
+      reload: syncForTest()
+    });
+
+    DS.Errors.reopen({
+      add: syncForTest(),
+      remove: syncForTest(),
+      clear: syncForTest()
+    });
+
+    /*
+    DS.Relationship.prototype.addRecord = syncForTest(DS.Relationship.prototype.addRecord);
+    DS.Relationship.prototype.removeRecord = syncForTest(DS.Relationship.prototype.removeRecord);
+
+    DS.Relationship.prototype.removeRecordFromInverse = syncForTest(DS.Relationship.prototype.removeRecordFromInverse);
+    DS.Relationship.prototype.removeRecordFromOwn = syncForTest(DS.Relationship.prototype.removeRecordFromOwn);
+
+    DS.Relationship.prototype.addRecordToInverse = syncForTest(DS.Relationship.prototype.addRecordToInverse);
+    */
+    
     var transforms = {
       'boolean': DS.BooleanTransform.create(),
       'date': DS.DateTransform.create(),
@@ -183,9 +208,43 @@
     });
 
     Ember.RSVP.Promise.prototype.then = syncForTest(Ember.RSVP.Promise.prototype.then);
+  });
 
   // Generate the jQuery expando on window ahead of time
   // to make the QUnit global check run clean
   jQuery(window).data('testing', true);
+
+  window.warns = function(callback, regex){
+    var warnWasCalled = false;
+    var oldWarn = Ember.warn;
+    Ember.warn = function Ember_assertWarning(message, test){
+      warnWasCalled = true;
+      if (regex && !test) {
+        ok(regex.test(message), 'Ember.warn called with expected message, but was called with ' + message);
+      } else if (test) {
+        ok(false, "Expected warn to receive a falsy test, but got a truthy test");
+      }
+    };
+    try {
+      callback();
+      ok(warnWasCalled, 'expected Ember.warn to warn, but was not called');
+    } finally {
+      Ember.warn = oldWarn;
+    }
+  };
+
+  window.noWarns = function(callback){
+    var oldWarn = Ember.warn;
+    var warnWasCalled = false;
+    Ember.warn = function Ember_noWarn(message, test){
+      warnWasCalled = !test;
+    };
+    try {
+      callback();
+    } finally {
+      ok(!warnWasCalled, 'Ember.warn warned when it should not have warned');
+      Ember.warn = oldWarn;
+    }
+  };
 
 })();

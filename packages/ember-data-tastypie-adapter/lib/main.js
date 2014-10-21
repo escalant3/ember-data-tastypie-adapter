@@ -1,2 +1,7 @@
-require("ember-data-tastypie-adapter/tastypie_serializer");
-require("ember-data-tastypie-adapter/tastypie_adapter");
+import DjangoTastypieAdapter from "ember-data-tastypie-adapter/tastypie_adapter";
+import DjangoTastypieSerializer from "ember-data-tastypie-adapter/tastypie_serializer";
+
+export {
+  DjangoTastypieAdapter,
+  DjangoTastypieSerializer
+};
