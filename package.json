@@ -13,7 +13,7 @@
   ],
   "scripts": {
     "test": "testem -R dot ci",
-    "dist": "broccoli buid --enviromnment=production"
+    "dist": "broccoli build --environment=production"
   },
   "devDependencies": {
     "bower": "~1.3",
