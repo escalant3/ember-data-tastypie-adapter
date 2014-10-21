@@ -54,7 +54,7 @@ var DjangoTastypieAdapter = DS.RESTAdapter.extend({
   },
 
   findMany: function(store, type, ids) {
-    return this.ajax('%@set/%@/'.fmt(this.buildURL(type.typeKey), ids.join(';')),
+    return this.ajax(Ember.String.fmt('%@set/%@/', this.buildURL(type.typeKey), ids.join(';')),
                      'GET');
   },
 
