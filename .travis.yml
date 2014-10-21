@@ -10,3 +10,4 @@ script:
 env:
   global:
   - BROCCOLI_ENV="production"
+  - EMBER_ENV="production"
