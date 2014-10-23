@@ -8,7 +8,6 @@ module("integration/django_tastypie_adapter - DjangoTastypieAdapter", {
   setup: function() {
     Person = DS.Model.extend({
       name: DS.attr('string'),
-      tasks: DS.hasMany('task')
     });
 
     Group = DS.Model.extend({
@@ -106,7 +105,7 @@ test("creating a person makes a POST to /api/v1/person, with the data hash", fun
   person.save().then(async(function(person) {
     equal(passedUrl, "/api/v1/person/");
     equal(passedVerb, "POST");
-    expectData({ name: "Tom Dale", tasks: [] });
+    expectData({ name: "Tom Dale" });
 
     equal(person.get('id'), "1", "the post has the updated ID");
     equal(person.get('isDirty'), false, "the post isn't dirty anymore");
