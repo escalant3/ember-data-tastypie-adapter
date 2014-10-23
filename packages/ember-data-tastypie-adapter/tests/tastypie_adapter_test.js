@@ -137,8 +137,14 @@ test("updating a person makes a PUT to /people/:id with the data hash", function
 
     ajaxResponse();
     return person.save();
-  })).then(async(function() {
-    equal(1,1);
+  })).then(async(function(person) {
+    equal(passedUrl, "/api/v1/person/1/");
+    equal(passedVerb, "PUT");
+    expectData({ name: "Brohuda Brokatz" });
+
+    equal(person.get('id'), "1");
+    equal(person.get('isDirty'), false, "the person isn't dirty anymore");
+    equal(person.get('name'), "Brohuda Brokatz");
   }));
 
 });
