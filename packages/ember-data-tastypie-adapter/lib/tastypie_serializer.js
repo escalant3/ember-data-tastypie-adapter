@@ -116,6 +116,13 @@ var DjangoTastypieSerializer = DS.RESTSerializer.extend({
     // Consider the resource as embedded if the relationship is not async
     return !(relationship.options.async ? relationship.options.async : false);
   },
+  
+  isResourceUri: function(adapter, payload) {
+    if (typeof payload !== 'string') {
+      return false;
+    }
+    return true;
+  },
 
   extractEmbeddedFromPayload: function(store, type, payload) {
     var self = this;
@@ -172,6 +179,12 @@ var DjangoTastypieSerializer = DS.RESTSerializer.extend({
     }
 
     var data = payload[key];
+    
+    // Don't try to process data if it's not data!
+    if (serializer.isResourceUri(store.adapterFor(relationship.type.typeKey), data)) {
+      return;
+    }
+    
     var embeddedType = store.modelFor(relationship.type.typeKey);
 
     serializer.extractEmbeddedFromPayload(store, embeddedType, data);
