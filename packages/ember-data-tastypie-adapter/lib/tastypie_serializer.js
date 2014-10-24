@@ -69,14 +69,14 @@ var DjangoTastypieSerializer = DS.RESTSerializer.extend({
         if (relationship.kind === 'belongsTo'){
           var resourceUri = hash[key];
           if (!isEmbedded) {
-            Ember.assert(relationship.key + " is an async relation but the related data in the response is not a URI", typeof resourceUri == "string")
+            Ember.assert(relationship.key + " is an async relation but the related data in the response is not a URI", typeof resourceUri == "string");
           }
           hash[key] = self.resourceUriToId(hash[key]);
         } else if (relationship.kind === 'hasMany'){
           var ids = [];
           hash[key].forEach(function (resourceUri){
             if (!isEmbedded) {
-              Ember.assert(relationship.key + " is an async relation but the related data in the response is not a URI", typeof resourceUri == "string")
+              Ember.assert(relationship.key + " is an async relation but the related data in the response is not a URI", typeof resourceUri == "string");
             }
             ids.push(self.resourceUriToId(resourceUri));
           });
@@ -107,7 +107,7 @@ var DjangoTastypieSerializer = DS.RESTSerializer.extend({
   isEmbedded: function(relationship) {
     var key = relationship.key;
     var attrs = get(this, 'attrs');
-    config = attrs && attrs[key] ? attrs[key] : false;
+    var config = attrs && attrs[key] ? attrs[key] : false;
     if (config) {
         // Per model serializer will take preference for the embedded mode
         return (config.embedded === 'load' || config.embedded === 'always');
@@ -119,9 +119,11 @@ var DjangoTastypieSerializer = DS.RESTSerializer.extend({
 
   extractEmbeddedFromPayload: function(store, type, payload) {
     var self = this;
+
     type.eachRelationship(function(key, relationship) {
-      var attrs = get(this, 'attrs');
+      var attrs = get(self, 'attrs');
       var config = attrs && attrs[key] ? attrs[key] : false;
+
       if (self.isEmbedded(relationship)) {
         if (relationship.kind === 'hasMany') {
           self.extractEmbeddedFromHasMany(store, key, relationship, payload, config);
@@ -203,7 +205,7 @@ var DjangoTastypieSerializer = DS.RESTSerializer.extend({
   },
 
   serializeHasMany: function(record, json, relationship) {
-    var key = relationship.key,
+    var key = relationship.key;
     key = this.keyForRelationship ? this.keyForRelationship(key, "belongsTo") : key;
 
     var relationshipType = DS.RelationshipChange.determineRelationshipType(record.constructor, relationship);
