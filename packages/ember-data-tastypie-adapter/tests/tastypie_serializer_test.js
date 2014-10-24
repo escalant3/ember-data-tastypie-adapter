@@ -6,12 +6,12 @@ module("integration/django_tastypie_adapter - DjangoTastypieSerializer", {
     SuperVillain = DS.Model.extend({
       firstName:     DS.attr('string'),
       lastName:      DS.attr('string'),
-      homePlanet:    DS.belongsTo("homePlanet"),
-      evilMinions:   DS.hasMany("evilMinion")
+      homePlanet:    DS.belongsTo("homePlanet", {async: true}),
+      evilMinions:   DS.hasMany("evilMinion", {async: true})
     });
     HomePlanet = DS.Model.extend({
       name:          DS.attr('string'),
-      villains:      DS.hasMany('superVillain')
+      villains:      DS.hasMany('superVillain', {async: true})
     });
     EvilMinion = DS.Model.extend({
       superVillain: DS.belongsTo('superVillain'),
@@ -166,6 +166,16 @@ test("extractSingle with embedded objects", function() {
 });
 
 test("extractSingle with embedded objects inside embedded objects", function() {
+  
+  SuperVillain.reopen({
+    homePlanet:    DS.belongsTo("homePlanet"),
+    evilMinions:   DS.hasMany("evilMinion")
+  });
+  
+  HomePlanet.reopen({
+    villains:      DS.hasMany('superVillain')
+  });
+  
   env.container.register('adapter:superVillain', DS.DjangoTastypieAdapter);
   env.container.register('serializer:homePlanet', DS.DjangoTastypieSerializer.extend({
     attrs: {
@@ -539,6 +549,16 @@ test("serialize polymorphic", function() {
 });
 
 test("serialize with embedded objects", function() {
+  
+  SuperVillain.reopen({
+    homePlanet:    DS.belongsTo("homePlanet"),
+    evilMinions:   DS.hasMany("evilMinion", { async: true })
+  });
+  
+  HomePlanet.reopen({
+    villains:      DS.hasMany('superVillain', { async: false })
+  });
+  
   league = env.store.createRecord(HomePlanet, { name: "Villain League", id: "123" });
   var tom = env.store.createRecord(SuperVillain, { id: 1, firstName: "Tom", lastName: "Dale", homePlanet: league });
 
