@@ -2,13 +2,12 @@ var get = Ember.get, set = Ember.set, hash = Ember.RSVP.hash;
 
 var env, store, adapter;
 var originalAjax, passedUrl, passedVerb, passedHash;
-var Person, Role, Group, Task;
+var Person, Role, Group, Task, Comment, Post;
 
 module("integration/django_tastypie_adapter - DjangoTastypieAdapter", {
   setup: function() {
     Person = DS.Model.extend({
       name: DS.attr('string'),
-      tasks: DS.hasMany('task')
     });
 
     Group = DS.Model.extend({
@@ -25,12 +24,23 @@ module("integration/django_tastypie_adapter - DjangoTastypieAdapter", {
       name: DS.attr('string'),
       owner: DS.belongsTo('person')
     });
+    
+    Comment = DS.Model.extend({
+      text: DS.attr('string')
+    });
+    
+    Post = DS.Model.extend({
+      text: DS.attr('string'),
+      comments: DS.hasMany('comment')
+    })
 
     env = setupStore({
       person: Person,
       group: Group,
       role: Role,
       task: Task,
+      comment: Comment,
+      post: Post,
       adapter: DS.DjangoTastypieAdapter
     });
 
@@ -106,7 +116,7 @@ test("creating a person makes a POST to /api/v1/person, with the data hash", fun
   person.save().then(async(function(person) {
     equal(passedUrl, "/api/v1/person/");
     equal(passedVerb, "POST");
-    expectData({ name: "Tom Dale", tasks: [] });
+    expectData({ name: "Tom Dale" });
 
     equal(person.get('id'), "1", "the post has the updated ID");
     equal(person.get('isDirty'), false, "the post isn't dirty anymore");
@@ -138,8 +148,14 @@ test("updating a person makes a PUT to /people/:id with the data hash", function
 
     ajaxResponse();
     return person.save();
-  })).then(async(function() {
-    equal(1,1);
+  })).then(async(function(person) {
+    equal(passedUrl, "/api/v1/person/1/");
+    equal(passedVerb, "PUT");
+    expectData({ name: "Brohuda Brokatz" });
+
+    equal(person.get('id'), "1");
+    equal(person.get('isDirty'), false, "the person isn't dirty anymore");
+    equal(person.get('name'), "Brohuda Brokatz");
   }));
 
 });
@@ -435,6 +451,10 @@ test("adding hasMany relationships parses the Resource URI (default key)", funct
     name: DS.attr('string'),
     group: DS.belongsTo('group')
   });
+  
+  Group.reopen({
+    people: DS.hasMany('person', { async: true })
+  });
 
   store.push('person', {id: 1, name: "Maurice Moss"});
   store.push('person', {id: 2, name: "Roy"});
@@ -446,13 +466,13 @@ test("adding hasMany relationships parses the Resource URI (default key)", funct
     var group = objects.group,
         people;
 
-    people = group.get('people');
-    people.pushObject(objects.moss);
-    people.pushObject(objects.roy);
-    //group.set('people', people);
-
-    ajaxResponse();
-    return group.save();
+    return group.get('people').then(async(function(people) {
+      people.pushObject(objects.moss);
+      people.pushObject(objects.roy);
+      
+      ajaxResponse();
+      return group.save();
+    }));
   })).then(async(function(data) {
     expectUrl('/api/v1/group/1/', 'modify Group URL');
     expectType("PUT");
@@ -466,3 +486,122 @@ test("adding hasMany relationships parses the Resource URI (default key)", funct
 
 });
 
+test("async hasMany always returns a promise", function() {
+  
+  Post.reopen({
+    comments: DS.hasMany('comment', { async: true })
+  });
+  
+  store.push('post', { id: 1, text: "Some text", comments: ['/api/v1/comment/1', '/api/v1/comment/2']});
+  
+  store.find('post', 1).then(async(function(post) {
+    ok(post.get('comments') instanceof DS.PromiseArray, "comments is a promise");
+  }));
+  
+});
+
+test("sync hasMany find with full=True", function() {
+  
+  Post.reopen({
+    comments: DS.hasMany('comment', { async: false })
+  });
+  
+  Comment.reopen({
+    post: DS.belongsTo('post')
+  });
+  
+  ajaxResponse({
+    id: 1,
+    text: "Some Text",
+    comments: [
+      {id: 1, text: 'Comment 1', post: '/api/v1/post/1/', resource_uri: '/api/v1/comment/1/'},
+      {id: 2, text: 'Comment 2', post: '/api/v1/post/1/', resource_uri: '/api/v1/comment/2/'}
+    ],
+    resource_uri: '/api/v1/post/1/'
+  });
+  
+  store.find('post', 1).then(async(function(post) {
+    ok(post.get('comments') instanceof Ember.ArrayProxy, "comments is not a promise");
+    equal(post.get('text'), "Some Text", "the post has the correct data");
+  }));
+  
+})
+
+test("sync hasMany save should not need to resolve relationship", function() {
+  
+  Post.reopen({
+    comments: DS.hasMany('comment', { async: false })
+  });
+  
+  Comment.reopen({
+    post: DS.belongsTo('post', { async: false })
+  });
+  
+  var post = store.push('post', { id: 1, text: "Some text", comments: [1, 2]});
+  store.push('comment', {id: 1, text: "Comment 1", post: post});
+  store.push('comment', {id: 2, text: "Comment 2", post: post});
+  
+  adapter.findMany = function() {
+    ok(false, "Should not get here.");
+  }
+  
+  store.find('post', 1).then(async(function(post) {
+    post.set('text', 'New Text');
+
+    equal(post.get('isDirty'), true, "the post dirty");
+    
+    ajaxResponse();
+    return post.save();
+  })).then(async(function(post) {
+    expectUrl('/api/v1/post/1/', 'modify Group URL');
+    expectType("PUT");
+    expectData({text: "New Text", comments: [
+        { id: "1", text: 'Comment 1', post: '/api/v1/post/1/' },
+        { id: "2", text: 'Comment 2', post: '/api/v1/post/1/' }
+    ]});
+    
+    equal(post.get('isDirty'), false, "the post is not dirty anymore");
+    equal(post.get('text'), "New Text", "the post was updated");
+  }));
+  
+});
+
+test("async hasMany save should resolve promise before post", function() {
+  
+  Post.reopen({
+    comments: DS.hasMany('comment', { async: true })
+  });
+  
+  Comment.reopen({
+    post: DS.belongsTo('post', { async: true })
+  });
+  
+  store.push('post', { id: 1, text: "Some text", comments: [1, 2]});
+  
+  var count = 0;
+  adapter.findMany = function() {
+    ok(count++ === 0, "findHasMany called once");
+    
+    return Ember.RSVP.resolve({ objects: [
+        {id: 1, text: "Comment 1", post: '/api/v1/post/1/', resource_uri: '/api/v1/comment/1/'}, 
+        {id: 2, text: "Comment 2", post: '/api/v1/post/1/', resource_uri: '/api/v1/comment/2/'}
+        ]});
+  }
+  
+  store.find('post', 1).then(async(function(post) {
+    post.set('text', 'New Text');
+
+    equal(post.get('isDirty'), true, "the post dirty");
+    
+    ajaxResponse();
+    return post.save();
+  })).then(async(function(post) {
+    expectUrl('/api/v1/post/1/', 'modify Group URL');
+    expectType("PUT");
+    expectData({text: "New Text", comments: ['/api/v1/comment/1/', '/api/v1/comment/2/'] });
+    
+    equal(post.get('isDirty'), false, "the post is not dirty anymore");
+    equal(post.get('text'), "New Text", "the post was updated");
+  }));
+  
+});

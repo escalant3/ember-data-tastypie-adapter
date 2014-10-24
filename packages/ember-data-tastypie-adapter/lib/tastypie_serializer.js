@@ -65,11 +65,19 @@ var DjangoTastypieSerializer = DS.RESTSerializer.extend({
         }
       }
       if (hash[key]) {
+        var isEmbedded = self.isEmbedded(relationship);
         if (relationship.kind === 'belongsTo'){
-          hash[key] = this.resourceUriToId(hash[key]);
+          var resourceUri = hash[key];
+          if (!isEmbedded) {
+            Ember.assert(relationship.key + " is an async relation but the related data in the response is not a URI", typeof resourceUri == "string");
+          }
+          hash[key] = self.resourceUriToId(hash[key]);
         } else if (relationship.kind === 'hasMany'){
           var ids = [];
           hash[key].forEach(function (resourceUri){
+            if (!isEmbedded) {
+              Ember.assert(relationship.key + " is an async relation but the related data in the response is not a URI", typeof resourceUri == "string");
+            }
             ids.push(self.resourceUriToId(resourceUri));
           });
           hash[key] = ids;
@@ -96,20 +104,34 @@ var DjangoTastypieSerializer = DS.RESTSerializer.extend({
     return this._super(store, primaryType, newPayload, recordId, requestType);
   },
 
-  isEmbedded: function(config) {
-    return !!config && (config.embedded === 'load' || config.embedded === 'always');
+  isEmbedded: function(relationship) {
+    var key = relationship.key;
+    var attrs = get(this, 'attrs');
+    var config = attrs && attrs[key] ? attrs[key] : false;
+    if (config) {
+        // Per model serializer will take preference for the embedded mode
+        return (config.embedded === 'load' || config.embedded === 'always');
+    }
+
+    // Consider the resource as embedded if the relationship is not async
+    return !(relationship.options.async ? relationship.options.async : false);
+  },
+  
+  isResourceUri: function(adapter, payload) {
+    if (typeof payload !== 'string') {
+      return false;
+    }
+    return true;
   },
 
   extractEmbeddedFromPayload: function(store, type, payload) {
     var self = this;
-    var attrs = get(this, 'attrs');
-
-    if (!attrs) { return; }
 
     type.eachRelationship(function(key, relationship) {
-      var config = attrs[key];
+      var attrs = get(self, 'attrs');
+      var config = attrs && attrs[key] ? attrs[key] : false;
 
-      if (self.isEmbedded(config)) {
+      if (self.isEmbedded(relationship)) {
         if (relationship.kind === 'hasMany') {
           self.extractEmbeddedFromHasMany(store, key, relationship, payload, config);
         } else if (relationship.kind === 'belongsTo') {
@@ -157,6 +179,12 @@ var DjangoTastypieSerializer = DS.RESTSerializer.extend({
     }
 
     var data = payload[key];
+    
+    // Don't try to process data if it's not data!
+    if (serializer.isResourceUri(store.adapterFor(relationship.type.typeKey), data)) {
+      return;
+    }
+    
     var embeddedType = store.modelFor(relationship.type.typeKey);
 
     serializer.extractEmbeddedFromPayload(store, embeddedType, data);
@@ -190,15 +218,13 @@ var DjangoTastypieSerializer = DS.RESTSerializer.extend({
   },
 
   serializeHasMany: function(record, json, relationship) {
-    var key = relationship.key,
-    attrs = get(this, 'attrs'),
-    config = attrs && attrs[key] ? attrs[key] : false;
+    var key = relationship.key;
     key = this.keyForRelationship ? this.keyForRelationship(key, "belongsTo") : key;
 
     var relationshipType = DS.RelationshipChange.determineRelationshipType(record.constructor, relationship);
 
     if (relationshipType === 'manyToNone' || relationshipType === 'manyToMany' || relationshipType === 'manyToOne') {
-      if (this.isEmbedded(config)) {
+      if (this.isEmbedded(relationship)) {
         json[key] = get(record, key).map(function (relation) {
           var data = relation.serialize();
 
