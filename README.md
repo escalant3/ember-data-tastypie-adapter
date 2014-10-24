@@ -128,6 +128,7 @@ In the meantime ember-data reachs 1.0, custom compilations have been used to tes
 - [Alex Goodwin](https://github.com/go1dfish)
 - [Aaron Ghent](https://github.com/AaronGhent)
 - [Sander Steffann](https://github.com/steffann)
+- [Sunny Nanda](https://github.com/snanda85)
 
 
 ## License
