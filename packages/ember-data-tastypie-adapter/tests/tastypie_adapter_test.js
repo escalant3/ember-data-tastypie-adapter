@@ -300,6 +300,8 @@ test("findByIds generates a tastypie style url", function() {
 
 test("finding many people by a list of IDs", function() {
   Group.reopen({ people: DS.hasMany('person', { async: true }) });
+  
+  adapter.coalesceFindRequests = true;
 
   store.push('group', { id: 1, people: [1, 2, 3]});
 
@@ -567,6 +569,8 @@ test("sync hasMany save should not need to resolve relationship", function() {
 });
 
 test("async hasMany save should resolve promise before post", function() {
+  
+  adapter.coalesceFindRequests = true;
   
   Post.reopen({
     comments: DS.hasMany('comment', { async: true })
