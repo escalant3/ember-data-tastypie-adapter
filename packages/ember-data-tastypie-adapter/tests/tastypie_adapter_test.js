@@ -603,5 +603,60 @@ test("async hasMany save should resolve promise before post", function() {
     equal(post.get('isDirty'), false, "the post is not dirty anymore");
     equal(post.get('text'), "New Text", "the post was updated");
   }));
+});
   
+test("metadata is accessible", function () {
+  ajaxResponse({
+    meta: { offset: 2, limit: 0 },
+    objects: [
+      {id: 1, name: "Maurice Moss"},
+      {id: 2, name: "Roy"},
+    ]
+  });
+  
+  store.findAll('person').then(async(function (people) {
+    equal(
+      store.metadataFor('person').offset,
+      2,
+      "Metadata can be accessed with metadataFor"
+      );
+  }));
+});
+
+test("findQuery - payload 'meta' is accessible on the record array", function() {
+  ajaxResponse({
+    meta: { offset: 5 },
+    objects: [{id: 1, name: "Roy"}]
+  });
+
+  store.findQuery('person', { page: 2 }).then(async(function(people) {
+    equal(
+      people.get('meta.offset'),
+      5,
+      "Reponse metadata can be accessed with recordArray.meta"
+    );
+  }));
+});
+
+test("findQuery - each record array can have it's own meta object", function() {
+  ajaxResponse({
+    meta: { offset: 5 },
+    objects: [{id: 1, name: "Roy"}]
+  });
+
+  store.findQuery('person', { page: 2 }).then(async(function(people) {
+    equal(
+      people.get('meta.offset'),
+      5,
+      "Reponse metadata can be accessed with recordArray.meta"
+    );
+    ajaxResponse({
+      meta: { offset: 1 },
+      objects: [{id: 1, name: "Maurice Moss"}]
+    });
+    store.findQuery('person', { page: 1}).then(async(function(newPeople){
+      equal(newPeople.get('meta.offset'), 1, 'new array has correct metadata');
+      equal(people.get('meta.offset'), 5, 'metadata on the old array hasnt been clobbered');
+    }));
+  }));
 });
