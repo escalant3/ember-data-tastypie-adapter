@@ -19,6 +19,37 @@ var DjangoTastypieSerializer = DS.RESTSerializer.extend({
     var specificExtract = "extract" + requestType.charAt(0).toUpperCase() + requestType.substr(1);
     return this[specificExtract](store, type, payload, id, requestType);
   },
+  
+  /**
+    `extractMeta` is used to deserialize any meta information in the
+    adapter payload. By default Ember Data expects meta information to
+    be located on the `meta` property of the payload object.
+  
+    The actual nextUrl is being stored. The offset must be extracted from
+    the string to do a new call.
+    When there are remaining objects to be returned, Tastypie returns a
+    `next` URL that in the meta header. Whenever there are no
+    more objects to be returned, the `next` paramater value will be null.
+    Instead of calculating the next `offset` each time, we store the nextUrl
+    from which the offset will be extrated for the next request
+    
+    @method extractMeta
+    @param {DS.Store} store
+    @param {subclass of DS.Model} type
+    @param {Object} payload
+  */
+  extractMeta: function(store, type, payload) {
+    if (payload && payload.meta) {
+      var adapter = store.adapterFor(type);
+              
+      if (adapter && adapter.get('since') !== null && payload.meta[adapter.get('since')] !== undefined) {
+        payload.meta.since = payload.meta[adapter.get('since')];
+      }
+      
+      store.metaForType(type, payload.meta);
+      delete payload.meta;
+    }
+  },
 
   extractMany: function(loader, json, type, records) {
     this.sideload(loader, type, json);
