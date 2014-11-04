@@ -459,7 +459,7 @@ test("adding hasMany relationships parses the Resource URI (default key)", funct
 
   Person.reopen({
     name: DS.attr('string'),
-    group: DS.belongsTo('group')
+    group: DS.belongsTo('group', { async: true })
   });
   
   Group.reopen({
