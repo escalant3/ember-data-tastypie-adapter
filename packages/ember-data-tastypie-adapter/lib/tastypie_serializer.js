@@ -6,8 +6,8 @@ var DjangoTastypieSerializer = DS.RESTSerializer.extend({
     return Ember.String.decamelize(attr);
   },
 
-  keyForRelationship: function(attr) {
-    return Ember.String.decamelize(attr);
+  keyForRelationship: function(key, type) {
+    return Ember.String.decamelize(key);
   },
 
   /**

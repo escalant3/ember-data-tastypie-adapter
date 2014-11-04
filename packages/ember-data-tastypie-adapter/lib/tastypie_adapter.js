@@ -37,8 +37,8 @@ var DjangoTastypieAdapter = DS.RESTAdapter.extend({
   */
   defaultSerializer: '-django-tastypie',
 
-  buildURL: function(record, suffix) {
-    var url = this._super(record, suffix);
+  buildURL: function(type, id, record) {
+    var url = this._super(type, id, record);
 
     // Add the trailing slash to avoid setting requirement in Django.settings
     if (url.charAt(url.length -1) !== '/') {
@@ -53,7 +53,7 @@ var DjangoTastypieAdapter = DS.RESTAdapter.extend({
     return url;
   },
 
-  findMany: function(store, type, ids) {
+  findMany: function(store, type, ids, records) {
     return this.ajax(Ember.String.fmt('%@set/%@/', this.buildURL(type.typeKey), ids.join(';')),
                      'GET');
   },
