@@ -277,13 +277,16 @@ var DjangoTastypieSerializer = DS.RESTSerializer.extend({
           } else {
             // If the property hasn't been fulfilled then it hasn't changed.
             // Fall back to the internal data. It contains enough for relationshipToResourceUri.
-            relationData = get(record, 'data.' + relationship.key) || [];
+            relationData = get(record, key).mapBy('id').map(function(_id) {
+              return {id: _id};
+            }) || [];
           }
         }
         
         json[key] = relationData.map(function (next){
           return this.relationshipToResourceUri(relationship, next);
         }, this);
+        
       }
     }
   }
