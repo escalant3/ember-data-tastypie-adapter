@@ -250,7 +250,7 @@ var DjangoTastypieSerializer = DS.RESTSerializer.extend({
 
   serializeHasMany: function(record, json, relationship) {
     var key = relationship.key;
-    key = this.keyForRelationship ? this.keyForRelationship(key, "belongsTo") : key;
+    key = this.keyForRelationship ? this.keyForRelationship(key, "hasMany") : key;
 
     var relationshipType = record.constructor.determineRelationshipType(relationship);
 
