@@ -284,13 +284,15 @@ test("finding a person by ID makes a GET to /api/v1/person/:id/", function() {
   }));
 });
 
-/*
+
 test("findByIds generates a tastypie style url", function() {
-  ajaxResponse([
+  adapter.coalesceFindRequests = true;
+  ajaxResponse({ objects: [
       { id: 1, name: "Rein Heinrichs", resource_uri: '/api/v1/person/1/'},
       { id: 2, name: "Tom Dale", resource_uri: '/api/v1/person/2/' },
       { id: 3, name: "Yehuda Katz", resource_uri: '/api/v1/person/3/' }
-    ]);
+    ]
+  });
 
   store.findByIds('person', [1, 2, 3]).then(async(function(people) {
       expectUrl("/api/v1/person/set/1;2;3/");
@@ -305,22 +307,25 @@ test("findByIds generates a tastypie style url", function() {
       deepEqual(yehuda.getProperties('id', 'name'), { id: "3", name: "Yehuda Katz" });
   }));
 });
-*/
+
 
 
 test("finding many people by a list of IDs", function() {
   Group.reopen({ people: DS.hasMany('person', { async: true }) });
+  adapter.coalesceFindRequests = true;
 
-  store.push('group', { id: 1, people: [1, 2, 3]});
-
-  store.find('group', 1).then(async(function(group) {
-    equal(passedUrl, undefined, "no Ajax calls have been made yet");
+  store.push('group', { id: 1, name: "Group 1", people: [1, 2, 3]});
+  
+  store.find('group', 1).then(async(function(group) {   
     ajaxResponse({"objects":
       [
         { id: 1, name: "Rein Heinrichs", resource_uri: '/api/v1/person/1/' },
         { id: 2, name: "Tom Dale", resource_uri: '/api/v1/person/2/' },
         { id: 3, name: "Yehuda Katz", resource_uri: '/api/v1/person/3/' }
-      ]});
+        ]});
+  
+    ok(true, "passed");
+  
     return group.get('people');
   })).then(async(function(people) {
     expectUrl("/api/v1/person/set/1;2;3/");
@@ -501,10 +506,17 @@ test("async hasMany always returns a promise", function() {
   Post.reopen({
     comments: DS.hasMany('comment', { async: true })
   });
+  adapter.coalesceFindRequests = true;
   
-  store.push('post', { id: 1, text: "Some text", comments: ['/api/v1/comment/1', '/api/v1/comment/2']});
+  store.push('post', { id: 1, text: "Some text", comments: ['1', '2']});
   
   store.find('post', 1).then(async(function(post) {
+    ajaxResponse({
+      objects: [
+        { id: 1, text: "Rein Heinrichs", resource_uri: '/api/v1/comment/1/' },
+        { id: 2, text: "Tom Dale", resource_uri: '/api/v1/comment/2/' }
+      ]
+    });
     ok(post.get('comments') instanceof DS.PromiseArray, "comments is a promise");
   }));
   
@@ -585,6 +597,7 @@ test("async hasMany save should resolve promise before post", function() {
   Comment.reopen({
     post: DS.belongsTo('post', { async: true })
   });
+  adapter.coalesceFindRequests = true;
   
   store.push('post', { id: 1, text: "Some text", comments: [1, 2]});
   

@@ -1,4 +1,5 @@
 var get = Ember.get, set = Ember.set;
+var forEach = Ember.ArrayPolyfills.forEach;
 
 function rejectionHandler(reason) {
   Ember.Logger.error(reason, reason.message);
@@ -57,6 +58,68 @@ var DjangoTastypieAdapter = DS.RESTAdapter.extend({
     return this.ajax(Ember.String.fmt('%@set/%@/', this.buildURL(type.typeKey), ids.join(';')),
                      'GET');
   },
+
+  _stripIDFromURL: function(store, record) {
+      var type = store.modelFor(record);
+      var url = this.buildURL(type.typeKey, record.get('id'), record);
+
+      var expandedURL = url.split('/');
+      //Case when the url is of the format ...something/:id
+      var lastSegment = expandedURL[ expandedURL.length - 2 ];
+      var id = record.get('id');
+      if (lastSegment === id) {
+        expandedURL[expandedURL.length - 2] = "";
+      } else if(endsWith(lastSegment, '?id=' + id)) {
+        //Case when the url is of the format ...something?id=:id
+        expandedURL[expandedURL.length - 1] = lastSegment.substring(0, lastSegment.length - id.length - 1);
+      }
+
+      return expandedURL.join('/');
+    },
+
+  groupRecordsForFindMany: function (store, records) {
+      var groups = Ember.MapWithDefault.create({defaultValue: function(){return [];}});
+      var adapter = this;
+
+      forEach.call(records, function(record){
+        var baseUrl = adapter._stripIDFromURL(store, record);
+        groups.get(baseUrl).push(record);
+      });
+
+      function splitGroupToFitInUrl(group, maxUrlLength) {
+        var baseUrl = adapter._stripIDFromURL(store, group[0]);
+        var idsSize = 0;
+        var splitGroups = [[]];
+
+        forEach.call(group, function(record) {
+          var additionalLength = '&ids[]='.length + record.get('id.length');
+          if (baseUrl.length + idsSize + additionalLength >= maxUrlLength) {
+            idsSize = 0;
+            splitGroups.push([]);
+          }
+
+          idsSize += additionalLength;
+
+          var lastGroupIndex = splitGroups.length - 1;
+          splitGroups[lastGroupIndex].push(record);
+        });
+
+        return splitGroups;
+      }
+
+      var groupsArray = [];
+      groups.forEach(function(key, group){
+        // http://stackoverflow.com/questions/417142/what-is-the-maximum-length-of-a-url-in-different-browsers
+        var maxUrlLength = 2048;
+        var splitGroups = splitGroupToFitInUrl(group, maxUrlLength);
+
+        forEach.call(splitGroups, function(splitGroup) {
+          groupsArray.push(splitGroup);
+        });
+      });
+
+      return groupsArray;
+    },
 
   /**
     sinceToken is defined by since property, which by default points to 'next' field in meta.
