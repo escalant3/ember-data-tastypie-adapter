@@ -252,7 +252,7 @@ var DjangoTastypieSerializer = DS.RESTSerializer.extend({
     var key = relationship.key;
     key = this.keyForRelationship ? this.keyForRelationship(key, "belongsTo") : key;
 
-    var relationshipType = DS.RelationshipChange.determineRelationshipType(record.constructor, relationship);
+    var relationshipType = record.constructor.determineRelationshipType(relationship);
 
     if (relationshipType === 'manyToNone' || relationshipType === 'manyToMany' || relationshipType === 'manyToOne') {
       if (this.isEmbedded(relationship)) {
