@@ -35,7 +35,7 @@ var DjangoTastypieAdapter = DS.RESTAdapter.extend({
   /**
     Serializer object to manage JSON transformations
   */
-  defaultSerializer: '_djangoTastypie',
+  defaultSerializer: '-django-tastypie',
 
   buildURL: function(record, suffix) {
     var url = this._super(record, suffix);
