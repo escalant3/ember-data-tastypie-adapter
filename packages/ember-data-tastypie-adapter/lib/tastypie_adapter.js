@@ -58,29 +58,21 @@ var DjangoTastypieAdapter = DS.RESTAdapter.extend({
                      'GET');
   },
 
-
   /**
-     The actual nextUrl is being stored. The offset must be extracted from
-     the string to do a new call.
-     When there are remaining objects to be returned, Tastypie returns a
-     `next` URL that in the meta header. Whenever there are no
-     more objects to be returned, the `next` paramater value will be null.
-     Instead of calculating the next `offset` each time, we store the nextUrl
-     from which the offset will be extrated for the next request
+    sinceToken is defined by since property, which by default points to 'next' field in meta.
+    We process this token to get the correct offset for loading more data.
+    
   */
-  sinceQuery: function(since) {
-    var offsetParam,
-        query;
+  findAll: function(store, type, sinceToken) {
+    var query;
 
-    query = {};
-
-    if (!!since) {
-      offsetParam = since.match(/offset=(\d+)/);
+    if (sinceToken) {
+      var offsetParam = sinceToken.match(/offset=(\d+)/);
       offsetParam = (!!offsetParam && !!offsetParam[1]) ? offsetParam[1] : null;
-      query.offset = offsetParam;
+      query = { offset: offsetParam };
     }
 
-    return offsetParam ? query : null;
+    return this.ajax(this.buildURL(type.typeKey), 'GET', { data: query });
   },
 
   removeTrailingSlash: function(url) {
