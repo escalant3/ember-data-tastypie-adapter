@@ -77,22 +77,46 @@ var DjangoTastypieAdapter = DS.RESTAdapter.extend({
       return expandedURL.join('/');
     },
 
-  groupRecordsForFindMany: function (store, records) {
+    /**
+      http://stackoverflow.com/questions/417142/what-is-the-maximum-length-of-a-url-in-different-browsers
+    */
+    maxUrlLength: 2048,
+
+    /**
+      Organize records into groups, each of which is to be passed to separate
+      calls to `findMany`.
+      This implementation groups together records that have the same base URL but
+      differing ids. For example `/comments/1` and `/comments/2` will be grouped together
+      because we know findMany can coalesce them together as `/comments?ids[]=1&ids[]=2`
+      It also supports urls where ids are passed as a query param, such as `/comments?id=1`
+      but not those where there is more than 1 query param such as `/comments?id=2&name=David`
+      Currently only the query param of `id` is supported. If you need to support others, please
+      override this or the `_stripIDFromURL` method.
+      It does not group records that have differing base urls, such as for example: `/posts/1/comments/2`
+      and `/posts/2/comments/3`
+      @method groupRecordsForFindMany
+      @param {DS.Store} store
+      @param {Array} records
+      @return {Array}  an array of arrays of records, each of which is to be
+                        loaded separately by `findMany`.
+    */
+    groupRecordsForFindMany: function (store, records) {
       var groups = Ember.MapWithDefault.create({defaultValue: function(){return [];}});
       var adapter = this;
+      var maxUrlLength = this.maxUrlLength;
 
       forEach.call(records, function(record){
         var baseUrl = adapter._stripIDFromURL(store, record);
         groups.get(baseUrl).push(record);
       });
 
-      function splitGroupToFitInUrl(group, maxUrlLength) {
+      function splitGroupToFitInUrl(group, maxUrlLength, paramNameLength) {
         var baseUrl = adapter._stripIDFromURL(store, group[0]);
         var idsSize = 0;
         var splitGroups = [[]];
 
         forEach.call(group, function(record) {
-          var additionalLength = '&ids[]='.length + record.get('id.length');
+          var additionalLength = encodeURIComponent(record.get('id')).length + paramNameLength;
           if (baseUrl.length + idsSize + additionalLength >= maxUrlLength) {
             idsSize = 0;
             splitGroups.push([]);
@@ -108,10 +132,9 @@ var DjangoTastypieAdapter = DS.RESTAdapter.extend({
       }
 
       var groupsArray = [];
-      groups.forEach(function(key, group){
-        // http://stackoverflow.com/questions/417142/what-is-the-maximum-length-of-a-url-in-different-browsers
-        var maxUrlLength = 2048;
-        var splitGroups = splitGroupToFitInUrl(group, maxUrlLength);
+      groups.forEach(function(group, key){
+        var paramNameLength = '&ids%5B%5D='.length;
+        var splitGroups = splitGroupToFitInUrl(group, maxUrlLength, paramNameLength);
 
         forEach.call(splitGroups, function(splitGroup) {
           groupsArray.push(splitGroup);

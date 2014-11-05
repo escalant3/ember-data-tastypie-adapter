@@ -3,7 +3,7 @@
   "version": "0.13.0",
   "private": true,
   "dependencies": {
-    "ember": "~1.7.0",
+    "ember": "~1.8.0",
     "ember-data": "1.0.0-beta.11"
   },
   "devDependencies": {
