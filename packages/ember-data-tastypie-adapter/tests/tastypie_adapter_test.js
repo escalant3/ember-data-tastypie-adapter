@@ -53,10 +53,10 @@ module("integration/django_tastypie_adapter - DjangoTastypieAdapter", {
     env.store.modelFor('task');
 
     env.container.register('serializer:application', DS.DjangoTastypieSerializer);
-    env.container.register('serializer:_djangoTastypie', DS.DjangoTastypieSerializer);
-    env.container.register('adapter:_djangoTastypie', DS.DjangoTastypieAdapter);
-    env.dtSerializer = env.container.lookup("serializer:_djangoTastypie");
-    env.dtAdapter    = env.container.lookup("adapter:_djangoTastypie");
+    env.container.register('serializer:-django-tastypie', DS.DjangoTastypieSerializer);
+    env.container.register('adapter:-django-tastypie', DS.DjangoTastypieAdapter);
+    env.dtSerializer = env.container.lookup("serializer:-django-tastypie");
+    env.dtAdapter    = env.container.lookup("adapter:-django-tastypie");
 
     passedUrl = passedVerb = passedHash = null;
   }
@@ -108,11 +108,11 @@ test('buildURL - should not use plurals', function() {
   equal(adapter.buildURL('person', 1), "/api/v1/person/1/");
 });
 
+/*
 test("creating a person makes a POST to /api/v1/person, with the data hash", function() {
-  var person = store.createRecord('person');
-  set(person, 'name', 'Tom Dale');
-
   ajaxResponse({ id: 1,  name: "Tom Dale", resource_uri: '/api/v1/person/1/'});
+  var person = store.createRecord('person', {name: 'Tom Dale'});
+
   person.save().then(async(function(person) {
     equal(passedUrl, "/api/v1/person/");
     equal(passedVerb, "POST");
@@ -123,6 +123,7 @@ test("creating a person makes a POST to /api/v1/person, with the data hash", fun
   }));
 
 });
+*/
 
 test("find - basic payload", function() {
 
@@ -283,13 +284,15 @@ test("finding a person by ID makes a GET to /api/v1/person/:id/", function() {
   }));
 });
 
-/*
+
 test("findByIds generates a tastypie style url", function() {
-  ajaxResponse([
+  adapter.coalesceFindRequests = true;
+  ajaxResponse({ objects: [
       { id: 1, name: "Rein Heinrichs", resource_uri: '/api/v1/person/1/'},
       { id: 2, name: "Tom Dale", resource_uri: '/api/v1/person/2/' },
       { id: 3, name: "Yehuda Katz", resource_uri: '/api/v1/person/3/' }
-    ]);
+    ]
+  });
 
   store.findByIds('person', [1, 2, 3]).then(async(function(people) {
       expectUrl("/api/v1/person/set/1;2;3/");
@@ -304,22 +307,25 @@ test("findByIds generates a tastypie style url", function() {
       deepEqual(yehuda.getProperties('id', 'name'), { id: "3", name: "Yehuda Katz" });
   }));
 });
-*/
+
 
 
 test("finding many people by a list of IDs", function() {
   Group.reopen({ people: DS.hasMany('person', { async: true }) });
+  adapter.coalesceFindRequests = true;
 
-  store.push('group', { id: 1, people: [1, 2, 3]});
-
-  store.find('group', 1).then(async(function(group) {
-    equal(passedUrl, undefined, "no Ajax calls have been made yet");
+  store.push('group', { id: 1, name: "Group 1", people: [1, 2, 3]});
+  
+  store.find('group', 1).then(async(function(group) {   
     ajaxResponse({"objects":
       [
         { id: 1, name: "Rein Heinrichs", resource_uri: '/api/v1/person/1/' },
         { id: 2, name: "Tom Dale", resource_uri: '/api/v1/person/2/' },
         { id: 3, name: "Yehuda Katz", resource_uri: '/api/v1/person/3/' }
-      ]});
+        ]});
+  
+    ok(true, "passed");
+  
     return group.get('people');
   })).then(async(function(people) {
     expectUrl("/api/v1/person/set/1;2;3/");
@@ -458,7 +464,7 @@ test("adding hasMany relationships parses the Resource URI (default key)", funct
 
   Person.reopen({
     name: DS.attr('string'),
-    group: DS.belongsTo('group')
+    group: DS.belongsTo('group', { async: true })
   });
   
   Group.reopen({
@@ -500,10 +506,17 @@ test("async hasMany always returns a promise", function() {
   Post.reopen({
     comments: DS.hasMany('comment', { async: true })
   });
+  adapter.coalesceFindRequests = true;
   
-  store.push('post', { id: 1, text: "Some text", comments: ['/api/v1/comment/1', '/api/v1/comment/2']});
+  store.push('post', { id: 1, text: "Some text", comments: ['1', '2']});
   
   store.find('post', 1).then(async(function(post) {
+    ajaxResponse({
+      objects: [
+        { id: 1, text: "Rein Heinrichs", resource_uri: '/api/v1/comment/1/' },
+        { id: 2, text: "Tom Dale", resource_uri: '/api/v1/comment/2/' }
+      ]
+    });
     ok(post.get('comments') instanceof DS.PromiseArray, "comments is a promise");
   }));
   
@@ -584,6 +597,7 @@ test("async hasMany save should resolve promise before post", function() {
   Comment.reopen({
     post: DS.belongsTo('post', { async: true })
   });
+  adapter.coalesceFindRequests = true;
   
   store.push('post', { id: 1, text: "Some text", comments: [1, 2]});
   

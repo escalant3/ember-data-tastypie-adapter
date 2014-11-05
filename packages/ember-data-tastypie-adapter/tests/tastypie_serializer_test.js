@@ -61,10 +61,10 @@ module("integration/django_tastypie_adapter - DjangoTastypieSerializer", {
     env.store.modelFor('course');
     env.store.modelFor('unit');
     env.container.register('serializer:application', DS.DjangoTastypieSerializer);
-    env.container.register('serializer:_djangoTastypie', DS.DjangoTastypieSerializer);
-    env.container.register('adapter:_djangoTastypie', DS.DjangoTastypieAdapter);
-    env.dtSerializer = env.container.lookup("serializer:_djangoTastypie");
-    env.dtAdapter    = env.container.lookup("adapter:_djangoTastypie");
+    env.container.register('serializer:-django-tastypie', DS.DjangoTastypieSerializer);
+    env.container.register('adapter:-django-tastypie', DS.DjangoTastypieAdapter);
+    env.dtSerializer = env.container.lookup("serializer:-django-tastypie");
+    env.dtAdapter    = env.container.lookup("adapter:-django-tastypie");
   },
 
   teardown: function() {

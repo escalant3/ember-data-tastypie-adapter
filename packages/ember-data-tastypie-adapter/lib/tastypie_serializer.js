@@ -6,8 +6,8 @@ var DjangoTastypieSerializer = DS.RESTSerializer.extend({
     return Ember.String.decamelize(attr);
   },
 
-  keyForRelationship: function(attr) {
-    return Ember.String.decamelize(attr);
+  keyForRelationship: function(key, type) {
+    return Ember.String.decamelize(key);
   },
 
   /**
@@ -250,9 +250,9 @@ var DjangoTastypieSerializer = DS.RESTSerializer.extend({
 
   serializeHasMany: function(record, json, relationship) {
     var key = relationship.key;
-    key = this.keyForRelationship ? this.keyForRelationship(key, "belongsTo") : key;
+    key = this.keyForRelationship ? this.keyForRelationship(key, "hasMany") : key;
 
-    var relationshipType = DS.RelationshipChange.determineRelationshipType(record.constructor, relationship);
+    var relationshipType = record.constructor.determineRelationshipType(relationship);
 
     if (relationshipType === 'manyToNone' || relationshipType === 'manyToMany' || relationshipType === 'manyToOne') {
       if (this.isEmbedded(relationship)) {
@@ -277,13 +277,16 @@ var DjangoTastypieSerializer = DS.RESTSerializer.extend({
           } else {
             // If the property hasn't been fulfilled then it hasn't changed.
             // Fall back to the internal data. It contains enough for relationshipToResourceUri.
-            relationData = get(record, 'data.' + relationship.key) || [];
+            relationData = get(record, key).mapBy('id').map(function(_id) {
+              return {id: _id};
+            }) || [];
           }
         }
         
         json[key] = relationData.map(function (next){
           return this.relationshipToResourceUri(relationship, next);
         }, this);
+        
       }
     }
   }

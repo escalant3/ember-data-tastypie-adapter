@@ -63,8 +63,8 @@
     }));
 
     container.register('serializer:-default', DS.JSONSerializer);
-    container.register('serializer:-rest', DS.RESTSerializer);
-    container.register('adapter:-rest', DS.RESTAdapter);
+    container.register('serializer:-rest', DS.DjangoTastypieSerializer);
+    container.register('adapter:-rest', DS.DjangoTastypieAdapter);
 
     container.injection('serializer', 'store', 'store:main');
 
@@ -183,7 +183,6 @@
       clear: syncForTest()
     });
 
-    /*
     DS.Relationship.prototype.addRecord = syncForTest(DS.Relationship.prototype.addRecord);
     DS.Relationship.prototype.removeRecord = syncForTest(DS.Relationship.prototype.removeRecord);
 
@@ -191,7 +190,6 @@
     DS.Relationship.prototype.removeRecordFromOwn = syncForTest(DS.Relationship.prototype.removeRecordFromOwn);
 
     DS.Relationship.prototype.addRecordToInverse = syncForTest(DS.Relationship.prototype.addRecordToInverse);
-    */
     
     var transforms = {
       'boolean': DS.BooleanTransform.create(),
