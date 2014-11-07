@@ -29,12 +29,12 @@
 
   **Note:** You can also add any paramaters available in the default RESTAdapter and RESTSerializer in ember. See http://emberjs.com/api/data/classes/DS.RESTAdapter.html and http://emberjs.com/api/data/classes/DS.RESTSerializer.html fur full configuration details. An example is shown below.
 
-```javascript
-App.ApplicationAdapter = DS.DjangoTastypieAdapter.extend({
-    serverDomain: "http://yourDomain.com",
-    namespace: "api/v1"
-});
-```
+    ```javascript
+    App.ApplicationAdapter = DS.DjangoTastypieAdapter.extend({
+        serverDomain: "http://yourDomain.com",
+        namespace: "api/v1"
+    });
+    ```
 
 ##### Using in Ember-CLI as a  global module:
 
@@ -68,14 +68,14 @@ App.ApplicationAdapter = DS.DjangoTastypieAdapter.extend({
 
   **Note:** You can also add any paramaters available in the default RESTAdapter and RESTSerializer in ember. See http://emberjs.com/api/data/classes/DS.RESTAdapter.html and http://emberjs.com/api/data/classes/DS.RESTSerializer.html fur full configuration details. An example is shown below.
 
-```javascript
-import DS from "ember-data";
+    ```javascript
+    import DS from "ember-data";
 
-export default DS.DjangoTastypieAdapter.extend({
-    serverDomain: "http://yourDomain.com",
-    namespace: "api/v1"
-});
-```
+    export default DS.DjangoTastypieAdapter.extend({
+        serverDomain: "http://yourDomain.com",
+        namespace: "api/v1"
+    });
+    ```
 
 #### *Python/Django side*
 The standard django-tastypie configuration will do the work. However, some details are important:
