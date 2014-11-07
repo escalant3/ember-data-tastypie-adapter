@@ -2,10 +2,11 @@ language: node_js
 node_js:
   - "0.10"
 install:
+- "rm -r dist"
 - "npm install"
 - "bower install"
-- "rm -r dist"
 - "npm run-script dist"
+- "cp dist/global/ember-data-tastypie-adapter.js dist/"
 script:
   - npm run-script test
 env:

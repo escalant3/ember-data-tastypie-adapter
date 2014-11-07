@@ -17,3 +17,4 @@ tmp
 
 dist/*.*
 dist/bower_components/
+npm-debug.log
