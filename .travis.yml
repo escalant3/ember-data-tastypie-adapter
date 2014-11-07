@@ -6,7 +6,6 @@ install:
 - "npm install"
 - "bower install"
 - "npm run-script dist"
-- "cp dist/global/ember-data-tastypie-adapter.js dist/"
 script:
   - npm run-script test
 env:

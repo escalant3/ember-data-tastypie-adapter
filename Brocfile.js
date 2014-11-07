@@ -97,27 +97,27 @@ testFiles = concat(testFiles, {
   separator: '\n',
   wrapInEval: true,
   wrapInFunction: true,
-  outputFile: '/tests.js'
+  outputFile: '/tests/tests.js'
 });
 
-var testRunner = pickFiles('tests', {
-  srcDir: '/',
-  inputFiles: [ '**/*' ],
-  destDir: '/'
-});
+//var testRunner = pickFiles('tests', {
+//  srcDir: '/',
+//  inputFiles: [ '**/*' ],
+//  destDir: '/'
+//});
 
-var bower = pickFiles('bower_components', {
-  srcDir: '/',
-  inputFiles: [ '**/*' ],
-  destDir: '/bower_components'
-});
+//var bower = pickFiles('bower_components', {
+//  srcDir: '/',
+//  inputFiles: [ '**/*' ],
+//  destDir: '/bower_components'
+//});
 
 var trees = merge([
   testFiles,
   globalBuild,
   namedAMDBuild,
-  testRunner,
-  bower
+//  testRunner,
+//  bower
 ]);
 
 if (env === 'production') {
