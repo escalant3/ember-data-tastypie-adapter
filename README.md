@@ -14,15 +14,15 @@
 ##### Using The Adapter With Traditional Script Tages:
 
 1. Copy the javascript files from **dist/global/ember-data-tastypie-adapter.js** and place them on your webserver.
-2. Insert the script tags into your document that link to the javascript files you copied to your webserver after your ember-data script tag.
-..```javascript
-..<script type="javascript" src="path/to/your/files/ember-data-tastypie-adapter.js"
-..```
-3. Setup the tastypie adapter and serializer for usage in ember:
-..```javascript
-..App.ApplicationAdapter = DS.DjangoTastypieAdapter.extend({});
-..App.ApplicationSerializer = DS.DjangoTastypieSerializer.extend({});
-..```
+2. Insert the script tags into your document that link to the javascript files you copied to your webserver after your ember-data script tag.  
+```javascript
+<script type="javascript" src="path/to/your/files/ember-data-tastypie-adapter.js"
+```
+3. Setup the tastypie adapter and serializer for usage in ember:  
+```javascript
+App.ApplicationAdapter = DS.DjangoTastypieAdapter.extend({});
+App.ApplicationSerializer = DS.DjangoTastypieSerializer.extend({});
+```
 
 **Note:** You can also add any paramaters available in the default RESTAdapter and RESTSerializer in ember. See http://emberjs.com/api/data/classes/DS.RESTAdapter.html and http://emberjs.com/api/data/classes/DS.RESTSerializer.html fur full configuration details. An example is shown below.
 ```javascript
@@ -35,22 +35,22 @@ App.ApplicationAdapter = DS.DjangoTastypieAdapter.extend({
 ##### Using in Ember-CLI as a  global module:
 
 1. Add an import statement to your **brocfile.js**.
-    ...```javascript
+    ```javascript
     app.import('vendor/ember-data-tastypie-adapter/dist/global/ember-data-tastypie-adapter.js');
     ```
 2. Add an 2 entries to the **predef** section of your **.jshintrc** file.
-    ...```javascript
+    ```javascript
         "DjangoTastypieAdapter": true,
         "DjangoTastypieSerializer": true
     ```
 3. Setup app/adapters/application.js for usage with the tastypie adapter.
-    ...```javascript
+    ```javascript
     import DS from "ember-data";
 
     export default DS.DjangoTastypieAdapter.extend();
     ```
 4. Setup app/serializers/application.js for usage with the tastypie serializer.
-    ...```javascript
+    ```javascript
     import DS from "ember-data";
 
     export default DS.DjangoTastypieSerializer.extend();
@@ -70,12 +70,12 @@ export default DS.DjangoTastypieAdapter.extend({
 The standard django-tastypie configuration will do the work. However, some details are important:
 
 1. ember-data always expects data in return (except in deletions). Make sure to configure your Resources with the meta option if you are going to perform POST or PUT operations:
-    ...```python
+    ```python
     class Meta:
         always_return_data = True
     ```
 2. obviously, the permissions must be configured in the server to allow GET, POST, PUT and DELETE methods to provide fully access to CRUD operations. Usually, django-tastypie will require an Authorization meta option to allow writing
-    ...```python
+    ```python
     class Meta:
         authorization = Authorization()
         detail_allowed_methods = ['get', 'post', 'put', 'delete']
@@ -92,7 +92,7 @@ Ember-data (and this adapter) supports two kind of relationship fields: `hasMany
         - Tastypie resources **must not** use `full=True` in the relationship fields
         - Ember-data model should define the relationship with `async: true` option
     - Example model definition:
-    ...```javascript
+    ```javascript
     App.Comment = DS.Model.extend({
         text: attr("string")
     })
