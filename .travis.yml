@@ -4,6 +4,7 @@ node_js:
 install:
 - "npm install"
 - "bower install"
+- "rm -r dist"
 - "npm run-script dist"
 script:
   - npm run-script test
