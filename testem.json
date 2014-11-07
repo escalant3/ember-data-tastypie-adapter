@@ -5,8 +5,8 @@
     "tests/**/*"
   ],
   "routes": {
-    "/ember-data-tastypie-adapter.js": "dist/ember-data-tastypie-adapter.js",
-    "/tests/tests.js": "dist/tests.js"
+    "/ember-data-tastypie-adapter.js": "dist/global/ember-data-tastypie-adapter.js",
+    "/tests/tests.js": "dist/tests/tests.js"
   },
   "launch_in_ci": [
     "PhantomJS"

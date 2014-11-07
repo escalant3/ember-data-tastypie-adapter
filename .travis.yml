@@ -2,6 +2,7 @@ language: node_js
 node_js:
   - "0.10"
 install:
+- "rm -r dist"
 - "npm install"
 - "bower install"
 - "npm run-script dist"

@@ -79,13 +79,13 @@ var testFiles = testTree(tastypieAdapterFiles, 'ember-data-tastypie-adapter');
 var namedAMDBuild = concat(libFiles, {
   inputFiles: ['**/*.js'],
   separator: '\n',
-  outputFile: '/ember-data-tastypie-adapter.named-amd.js'
+  outputFile: '/named-amd/ember-data-tastypie-adapter.js'
 });
 
 var globalBuild = concat(merge([libFiles, loaderJS]), {
   inputFiles: ['loader.js', '**/*.js'],
   separator: '\n',
-  outputFile: '/ember-data-tastypie-adapter.js'
+  outputFile: '/global/ember-data-tastypie-adapter.js'
 });
 
 globalBuild = wrap(globalBuild, {
@@ -97,32 +97,32 @@ testFiles = concat(testFiles, {
   separator: '\n',
   wrapInEval: true,
   wrapInFunction: true,
-  outputFile: '/tests.js'
+  outputFile: '/tests/tests.js'
 });
 
-var testRunner = pickFiles('tests', {
-  srcDir: '/',
-  inputFiles: [ '**/*' ],
-  destDir: '/'
-});
+//var testRunner = pickFiles('tests', {
+//  srcDir: '/',
+//  inputFiles: [ '**/*' ],
+//  destDir: '/'
+//});
 
-var bower = pickFiles('bower_components', {
-  srcDir: '/',
-  inputFiles: [ '**/*' ],
-  destDir: '/bower_components'
-});
+//var bower = pickFiles('bower_components', {
+//  srcDir: '/',
+//  inputFiles: [ '**/*' ],
+//  destDir: '/bower_components'
+//});
 
 var trees = merge([
   testFiles,
   globalBuild,
   namedAMDBuild,
-  testRunner,
-  bower
+//  testRunner,
+//  bower
 ]);
 
 if (env === 'production') {
-  var minifiedAMD = minify(namedAMDBuild, 'ember-data-tastypie-adapter.named-amd');
-  var minifiedGlobals = minify(globalBuild, 'ember-data-tastypie-adapter');
+  var minifiedAMD = minify(namedAMDBuild, 'named-amd/ember-data-tastypie-adapter');
+  var minifiedGlobals = minify(globalBuild, 'global/ember-data-tastypie-adapter');
   trees = merge([
     trees,
     minifiedAMD,
