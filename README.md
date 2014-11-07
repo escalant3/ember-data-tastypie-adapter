@@ -2,7 +2,7 @@
 
 
 ## Motivation
-- django-tastypie is one of the most widely used libraries to provide a REST interface from a django App.
+- [django-tastypie](https://github.com/toastdriven/django-tastypie) is one of the most widely used libraries to provide a REST interface from a django App.
 - The ember-data default RESTAdapter does not follow the conventions used in django-tastypie.
 - Instead of forcing the django developer to adapt tastypie to ember-data conventions, this adapter does the dirty work.
 
@@ -20,7 +20,7 @@
     <script type="javascript" src="path/to/your/files/ember-data-tastypie-adapter.js"
     ```
 
-3. Setup the tastypie adapter and serializer for usage in ember:
+3. Setup the tastypie adapter and serializer for usage in ember.
 
     ```javascript
     App.ApplicationAdapter = DS.DjangoTastypieAdapter.extend({});
@@ -44,13 +44,14 @@
     app.import('vendor/ember-data-tastypie-adapter/dist/global/ember-data-tastypie-adapter.js');
     ```
 
-2. Add an 2 entries to the **predef** section of your **.jshintrc** file.
+2. Add the 2 entries required to make jshint happy to the **predef** section of your **.jshintrc** file.
 
     ```javascript
         "DjangoTastypieAdapter": true,
         "DjangoTastypieSerializer": true
     ```
-3. Setup app/adapters/application.js for usage with the tastypie adapter.
+
+3. Setup your **app/adapters/application.js** file for usage with the tastypie adapter.
 
     ```javascript
     import DS from "ember-data";
@@ -58,7 +59,7 @@
     export default DS.DjangoTastypieAdapter.extend();
     ```
 
-4. Setup app/serializers/application.js for usage with the tastypie serializer.
+4. Setup your **app/serializers/application.js** file for usage with the tastypie serializer.
 
     ```javascript
     import DS from "ember-data";
@@ -100,11 +101,11 @@ The standard django-tastypie configuration will do the work. However, some detai
 Ember-data (and this adapter) supports two kind of relationship fields: `hasMany` and `belongsTo`. There are two methods of handling relationship fields with tastypie:
 
 - Async Resources
-  - The related data is not present in the response of the parent model, so ember-data uses promise objects to represent such fields
-  - Related data is fetched asynchronously, when the code tries to access the field of the model
-  - This adaptor expects tastypie to return only related resource urls in the response, so:
-    - Tastypie resources **must not** use `full=True` in the relationship fields
-    - Ember-data model should define the relationship with `async: true` option
+  - The related data is not present in the response of the parent model, so ember-data uses promise objects to represent such fields.
+  - Related data is fetched asynchronously, when the code tries to access the field of the model.
+  - This adaptor expects tastypie to return only related resource urls in the response:
+    1. Tastypie resources **must not** use `full=True` in the relationship fields.
+    2. Ember-data model should define the relationship with `async: true` option.
   - Example model definition:
 
     ```javascript
@@ -119,11 +120,11 @@ Ember-data (and this adapter) supports two kind of relationship fields: `hasMany
     ```
 
 - Embedded Resources
-  - The related model's data is embedded in the response of the parent model, so there is no need to fetch the related model using its own resource uri
+  - The related model's data is embedded in the response of the parent model, so there is no need to fetch the related model using its own resource uri.
   - This adaptor expects tastypie to return full data of related model in the same response:
-    - Tastypie resources must use `full=True` in the relationship fields
-    - Ember-data model should define the relationship without `async: true` option. async is false by default.
-  - Example model definition
+    1. Tastypie resources must use `full=True` in the relationship fields.
+    2. Ember-data model should define the relationship without `async: true` option. async is false by default.
+  - Example model definition:
 
     ```javascript
     App.Comment = DS.Model.extend({
@@ -136,7 +137,7 @@ Ember-data (and this adapter) supports two kind of relationship fields: `hasMany
     })
     ```
 
-**Note:** In both the cases, (for now) it is mandatory for the related models to have their own URLs to support proper CRUD operations
+**Note:** In both the cases, (for now) it is mandatory for the related models to have their own URLs to support proper CRUD operations.
 
 
 ## Contributing
@@ -147,9 +148,9 @@ This adapter does not support bulkCommits and does not plan to do it soon. djang
 
 
 ## Building
-**Note**: To build minified .js files you need to have ** BROCCOLI_ENV="production" ** and ** EMBER_ENV="production" ** in your environment at build time.
+**Note**: To build minified .js files you need to have **BROCCOLI_ENV="production"** and **EMBER_ENV="production"** in your environment at build time.
 
-Go to the project folder you downloaded the source to and type in:
+To build, go to the project folder you downloaded the source to and type:
 
 ```bash
 npm install
@@ -167,7 +168,7 @@ Go to the project directory and type:
 testem
 ```
 
-Go to http://localhost:7357/ to run the Qunit tests.
+Go to [http://localhost:7357/](http://localhost:7357/) to run the Qunit tests.
 
 ### Terminal (PhantomJS)
 
@@ -177,7 +178,7 @@ testem ci
 ```
 
 ## Versions
-In the meantime ember-data reachs 1.0, custom compilations have been used to test the adapter.
+Until ember-data reachs 1.0, custom compilations have been used to test the adapter.
 
 #### ember.js
 1.8.1
