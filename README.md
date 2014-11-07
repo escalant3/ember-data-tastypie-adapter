@@ -14,11 +14,11 @@
 ##### Using The Adapter With Traditional Script Tages:
 
 1. Copy the javascript files from **dist/global/ember-data-tastypie-adapter.js** and place them on your webserver.
-2. Insert the script tags into your document that link to the javascript files you copied to your webserver after your ember-data script tag.  
+2. Insert the script tags into your document that link to the javascript files you copied to your webserver after your ember-data script tag.
   ```javascript
   <script type="javascript" src="path/to/your/files/ember-data-tastypie-adapter.js"
   ```
-3. Setup the tastypie adapter and serializer for usage in ember:  
+3. Setup the tastypie adapter and serializer for usage in ember:
   ```javascript
   App.ApplicationAdapter = DS.DjangoTastypieAdapter.extend({});
   App.ApplicationSerializer = DS.DjangoTastypieSerializer.extend({});
