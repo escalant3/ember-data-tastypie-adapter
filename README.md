@@ -88,7 +88,7 @@ The standard django-tastypie configuration will do the work. However, some detai
         always_return_data = True
     ```
 
-2. obviously, the permissions must be configured in the server to allow GET, POST, PUT and DELETE methods to provide fully access to CRUD operations. Usually, django-tastypie will require an Authorization meta option to allow writing
+2. Tastypie comes setup by default to only allow GET operations. To allow write access (POST, PUT, Delete) to your api django-tastypie will require an Authorization meta option. For more detailed information see the tastypie documentation on [Authorization](https://django-tastypie.readthedocs.org/en/latest/authorization.html). An insecure configuration is shown below:
 
     ```python
     class Meta:
@@ -98,7 +98,7 @@ The standard django-tastypie configuration will do the work. However, some detai
     ```
 
 #### Ember-data relationship fields
-Ember-data (and this adapter) supports two kind of relationship fields: `hasMany` and `belongsTo`. There are two methods of handling relationship fields with tastypie:
+Ember-data (and this adapter) supports two kind of relationship fields: **hasMany** and **belongsTo**. There are two methods of handling relationship fields with tastypie:
 
 - Async Resources
   - The related data is not present in the response of the parent model, so ember-data uses promise objects to represent such fields.
