@@ -16,3 +16,4 @@ tmp
 *swp
 
 npm-debug.log
+dist/tests/
