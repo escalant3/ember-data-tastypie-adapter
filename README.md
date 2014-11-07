@@ -35,11 +35,11 @@ App.ApplicationAdapter = DS.DjangoTastypieAdapter.extend({
 
 ##### Using in Ember-CLI as a  global module:
 
-1. Add an import statement to your **brocfile.js**
+1. Add an import statement to your **brocfile.js**.
     ``` javascript
     app.import('vendor/ember-data-tastypie-adapter/dist/global/ember-data-tastypie-adapter.js');
     ```
-2. Add an 2 entries to the **predef** section of your **.jshintrc** file
+2. Add an 2 entries to the **predef** section of your **.jshintrc** file.
     ``` javascript
         "DjangoTastypieAdapter": true,
         "DjangoTastypieSerializer": true
@@ -136,9 +136,9 @@ This adapter does not support bulkCommits and does not plan to do it soon. djang
 
 Go to the project folder you downloaded the source to and type in:
 ``` bash
-    npm install
-    bower install
-    broccoli build dist
+npm install
+bower install
+broccoli build dist
 ```
 
 
@@ -147,14 +147,14 @@ Go to the project folder you downloaded the source to and type in:
 #### Browser
 Go to the project directory and type:
 ``` bash
-    testem
+testem
 ```
 Go to http://localhost:7357/ to run the Qunit tests.
 
 ### Terminal (PhantomJS)
 ``` bash
-    # Run once
-    testem ci
+# Run once
+testem ci
 ```
 
 ## Versions
