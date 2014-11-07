@@ -15,15 +15,14 @@
 
 1. Copy the javascript files from **dist/global/ember-data-tastypie-adapter.js** and place them on your webserver.
 2. Insert the script tags into your document that link to the javascript files you copied to your webserver after your ember-data script tag.
-``` javascript
-<script type="javascript" src="path/to/your/files/ember-data-tastypie-adapter.js"
-```
-
+    ``` javascript
+    <script type="javascript" src="path/to/your/files/ember-data-tastypie-adapter.js"
+    ```
 3. Setup the tastypie adapter and serializer for usage in ember:
-``` javascript
-App.ApplicationAdapter = DS.DjangoTastypieAdapter.extend({});
-App.ApplicationSerializer = DS.DjangoTastypieSerializer.extend({});
-```
+    ``` javascript
+    App.ApplicationAdapter = DS.DjangoTastypieAdapter.extend({});
+    App.ApplicationSerializer = DS.DjangoTastypieSerializer.extend({});
+    ```
 
 **Note:** You can also add any paramaters available in the default RESTAdapter and RESTSerializer in ember. See http://emberjs.com/api/data/classes/DS.RESTAdapter.html and http://emberjs.com/api/data/classes/DS.RESTSerializer.html fur full configuration details. An example is shown below.
 ``` javascript
