@@ -27,7 +27,7 @@
     App.ApplicationSerializer = DS.DjangoTastypieSerializer.extend({});
     ```
 
-**Note:** You can also add any paramaters available in the default RESTAdapter and RESTSerializer in ember. See http://emberjs.com/api/data/classes/DS.RESTAdapter.html and http://emberjs.com/api/data/classes/DS.RESTSerializer.html fur full configuration details. An example is shown below.
+  **Note:** You can also add any paramaters available in the default RESTAdapter and RESTSerializer in ember. See http://emberjs.com/api/data/classes/DS.RESTAdapter.html and http://emberjs.com/api/data/classes/DS.RESTSerializer.html fur full configuration details. An example is shown below.
 
 ```javascript
 App.ApplicationAdapter = DS.DjangoTastypieAdapter.extend({
@@ -66,7 +66,7 @@ App.ApplicationAdapter = DS.DjangoTastypieAdapter.extend({
     export default DS.DjangoTastypieSerializer.extend();
     ```
 
-**Note:** You can also add any paramaters available in the default RESTAdapter and RESTSerializer in ember. See http://emberjs.com/api/data/classes/DS.RESTAdapter.html and http://emberjs.com/api/data/classes/DS.RESTSerializer.html fur full configuration details. An example is shown below.
+  **Note:** You can also add any paramaters available in the default RESTAdapter and RESTSerializer in ember. See http://emberjs.com/api/data/classes/DS.RESTAdapter.html and http://emberjs.com/api/data/classes/DS.RESTSerializer.html fur full configuration details. An example is shown below.
 
 ```javascript
 import DS from "ember-data";
@@ -119,11 +119,11 @@ Ember-data (and this adapter) supports two kind of relationship fields: `hasMany
     ```
 
 - Embedded Resources
-    - The related model's data is embedded in the response of the parent model, so there is no need to fetch the related model using its own resource uri
-    - This adaptor expects tastypie to return full data of related model in the same response:
-        - Tastypie resources must use `full=True` in the relationship fields
-        - Ember-data model should define the relationship without `async: true` option. async is false by default.
-    - Example model definition
+  - The related model's data is embedded in the response of the parent model, so there is no need to fetch the related model using its own resource uri
+  - This adaptor expects tastypie to return full data of related model in the same response:
+    - Tastypie resources must use `full=True` in the relationship fields
+    - Ember-data model should define the relationship without `async: true` option. async is false by default.
+  - Example model definition
 
     ```javascript
     App.Comment = DS.Model.extend({
