@@ -54,6 +54,7 @@ define("ember-data-tastypie-adapter/tastypie_adapter",
 
       buildURL: function(type, id, record) {
         var url = this._super(type, id, record);
+        var serverDomain = this.get('serverDomain');
 
         // Add the trailing slash to avoid setting requirement in Django.settings
         if (url.charAt(url.length -1) !== '/') {
@@ -61,8 +62,8 @@ define("ember-data-tastypie-adapter/tastypie_adapter",
         }
 
         // Add the server domain if any
-        if (!!this.serverDomain) {
-          url = this.removeTrailingSlash(this.serverDomain) + url;
+        if (!!serverDomain) {
+          url = this.removeTrailingSlash(serverDomain) + url;
         }
 
         return url;
