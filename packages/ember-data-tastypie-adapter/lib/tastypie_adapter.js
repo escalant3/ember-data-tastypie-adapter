@@ -40,6 +40,7 @@ var DjangoTastypieAdapter = DS.RESTAdapter.extend({
 
   buildURL: function(type, id, record) {
     var url = this._super(type, id, record);
+    var serverDomain = this.get('serverDomain');
 
     // Add the trailing slash to avoid setting requirement in Django.settings
     if (url.charAt(url.length -1) !== '/') {
@@ -47,8 +48,8 @@ var DjangoTastypieAdapter = DS.RESTAdapter.extend({
     }
 
     // Add the server domain if any
-    if (!!this.serverDomain) {
-      url = this.removeTrailingSlash(this.serverDomain) + url;
+    if (!!serverDomain) {
+      url = this.removeTrailingSlash(serverDomain) + url;
     }
 
     return url;
