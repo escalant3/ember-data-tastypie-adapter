@@ -543,7 +543,8 @@ test("sync hasMany find with full=True", function() {
   });
   
   store.find('post', 1).then(async(function(post) {
-    ok(post.get('comments') instanceof Ember.ArrayProxy, "comments is not a promise");
+    ok(post.get('comments') instanceof DS.ManyArray, "comments is not a promise");
+    ok(post.get('comments').isLoaded, "Comments are loaded");
     equal(post.get('text'), "Some Text", "the post has the correct data");
   }));
   
