@@ -245,7 +245,7 @@ define("ember-data-tastypie-adapter/tastypie_serializer",
             payload.meta.since = payload.meta[adapter.get('since')];
           }
           
-          store.metaForType(type, payload.meta);
+          store.setMetadataFor(type, payload.meta);
           delete payload.meta;
         }
       },
