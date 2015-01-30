@@ -46,7 +46,7 @@ var DjangoTastypieSerializer = DS.RESTSerializer.extend({
         payload.meta.since = payload.meta[adapter.get('since')];
       }
       
-      store.metaForType(type, payload.meta);
+      store.setMetadataFor(type, payload.meta);
       delete payload.meta;
     }
   },
