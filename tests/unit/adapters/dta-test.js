@@ -115,77 +115,6 @@ test('buildURL - should not use plurals', function() {
   equal(adapter.buildURL('person', 1), "/api/v1/person/1/");
 });
 
-/*
-test("creating a person makes a POST to /api/v1/person, with the data hash", function() {
-  ajaxResponse({ id: 1,  name: "Tom Dale", resource_uri: '/api/v1/person/1/'});
-  var person = store.createRecord('person', {name: 'Tom Dale'});
-
-  person.save().then(async(function(person) {
-    equal(passedUrl, "/api/v1/person/");
-    equal(passedVerb, "POST");
-    expectData({ name: "Tom Dale" });
-
-    equal(person.get('id'), "1", "the post has the updated ID");
-    equal(person.get('isDirty'), false, "the post isn't dirty anymore");
-  }));
-
-});
-*/
-
-
-test("updating a person makes a PUT to /people/:id with the data hash", function() {
-  set(adapter, 'bulkCommit', false);
-
-  store.push('person', { id: 1, name: "Yehuda Katz" });
-
-  store.find('person', 1).then(async(function(person) {
-    set(person, 'name', "Brohuda Brokatz");
-
-    ajaxResponse();
-    return person.save();
-  })).then(async(function(person) {
-    equal(passedUrl, "/api/v1/person/1/");
-    equal(passedVerb, "PUT");
-    expectData({ name: "Brohuda Brokatz" });
-
-    equal(person.get('id'), "1");
-    equal(person.get('isDirty'), false, "the person isn't dirty anymore");
-    equal(person.get('name'), "Brohuda Brokatz");
-  }));
-
-});
-
-test("updates are not required to return data", function() {
-  set(adapter, 'bulkCommit', false);
-
-  store.push('person', { id: 1, name: "Yehuda Katz" });
-
-  var _person;
-
-  store.find('person', 1).then(async(function(person) {
-    expectState(person, 'new', false);
-    expectState(person, 'loaded');
-    expectState(person, 'dirty', false);
-
-    _person = person;
-
-    set(person, 'name', "Brohuda Brokatz");
-    expectState(person, 'dirty');
-
-    ajaxResponse();
-    return person.save();
-  })).then(async(function(person) {
-    expectUrl("/api/v1/person/1/", "the plural of the model name with its ID");
-    expectType("PUT");
-
-    expectState(person, 'saving', false);
-
-    equal(_person, store.getById('person', 1), "the same person is retrieved by the same ID");
-    equal(get(person, 'name'), "Brohuda Brokatz", "the data is preserved");
-  }));
-
-});
-
 /* COMMENTED IN EMBER DATA
 test("updating a record with custom primaryKey", function() {
   Ember.run(function() {
@@ -203,182 +132,9 @@ test("updating a record with custom primaryKey", function() {
 });*/
 
 
-test("deleting a person makes a DELETE to /api/v1/person/:id/", function() {
-    set(adapter, 'bulkCommit', false);
-
-    store.push('person', { id: 1, name: "Tom Dale" });
-
-    store.find('person', 1).then(async(function(person) {
-      ajaxResponse();
-
-      person.deleteRecord();
-      return person.save();
-    })).then(async(function(person) {
-      expectUrl("/api/v1/person/1/", "the plural of the model name with its ID");
-      expectType("DELETE");
-
-      equal(person.get('isDirty'), false, "the post isn't dirty anymore");
-      equal(person.get('isDeleted'), true, "the post is now deleted");
-    }));
-});
-
-test("finding all people makes a GET to /api/v1/person/", function() {
-
-  ajaxResponse({"objects": [{ id: 1, name: "Yehuda Katz", resource_uri: '/api/v1/person/1/' }]});
-
-  store.find('person').then(async(function(people) {
-    expectUrl("/api/v1/person/", "the plural of the model name");
-    expectType("GET");
-    var person = people.objectAt(0);
-
-    expectState(person, 'loaded');
-    expectState(person, 'dirty', false);
-
-    equal(person, store.getById('person', 1), "the record is now in the store, and can be looked up by ID without another Ajax request");
-  }));
-});
-
-
-test("since gets set if needed for pagination", function() {
-
-  ajaxResponse({"objects": [{id: 1, name: "Roy", resource_uri: '/api/v1/person/1/'}, {id: 2, name: "Moss", resource_uri: '/api/v1/person/2/'}],
-            "meta": {limit: 2, next: "nextUrl&offset=2", offset: 0, previous: null, total_count: 25}});
-
-  store.findAll('person').then(async(function(people) {
-    expectUrl("/api/v1/person/", "the findAll URL");
-    equal(people.get('meta.offset', 0, "Offset is set"));
-    equal(people.get('meta.next', "nextUrl&offset=2", "Next is set"));
-    equal(people.get('meta.totalCount', 25, "Total count is correct"));
-    
-    ajaxResponse({"objects": [{id: 3, name: "Roy", resource_uri: '/api/v1/person/3/'}, {id: 4, name: "Moss", resource_uri: '/api/v1/person/4/'}],
-              "meta": {limit: 2, next: "nextUrl&offset=4", offset: 2, previous: "previousUrl&offset=0", total_count: 25}});
-    
-    return store.findAll('person');
-  })).then(async(function(morePeople) {
-    deepEqual(passedHash.data, { offset: "2" });
-    
-    equal(store.metadataFor('person').offset, 2, "Offset is correct");
-    expectUrl("/api/v1/person/", "the findAll URL is the same with the since parameter");
-  }));
-
-});
-
-
-test("finding a person by ID makes a GET to /api/v1/person/:id/", function() {
-  ajaxResponse({ id: 1, name: "Yehuda Katz", resource_uri: '/api/v1/person/1/' });
-
-  store.find('person', 1).then(async(function(person) {
-    expectUrl("/api/v1/person/1/", "the model name with the ID requested");
-    expectType("GET");
-
-    expectState(person, 'loaded', true);
-    expectState(person, 'dirty', false);
-
-    equal(person, store.getById('person', 1), "the record is now in the store, and can be looked up by ID without another Ajax request");
-  }));
-});
-
-
-test("findByIds generates a tastypie style url", function() {
-  adapter.coalesceFindRequests = true;
-  ajaxResponse({ objects: [
-      { id: 1, name: "Rein Heinrichs", resource_uri: '/api/v1/person/1/'},
-      { id: 2, name: "Tom Dale", resource_uri: '/api/v1/person/2/' },
-      { id: 3, name: "Yehuda Katz", resource_uri: '/api/v1/person/3/' }
-    ]
-  });
-
-  store.findByIds('person', [1, 2, 3]).then(async(function(people) {
-      expectUrl("/api/v1/person/set/1;2;3/");
-      expectType("GET");
-
-      var rein = store.getById('person', 1),
-          tom = store.getById('person', 2),
-          yehuda = store.getById('person', 3);
-
-      deepEqual(rein.getProperties('id', 'name'), { id: "1", name: "Rein Heinrichs" });
-      deepEqual(tom.getProperties('id', 'name'), { id: "2", name: "Tom Dale" });
-      deepEqual(yehuda.getProperties('id', 'name'), { id: "3", name: "Yehuda Katz" });
-  }));
-});
-
-
-
-test("finding many people by a list of IDs", function() {
-  Group.reopen({ people: DS.hasMany('person', { async: true }) });
-  adapter.coalesceFindRequests = true;
-
-  store.push('group', { id: 1, name: "Group 1", people: [1, 2, 3]});
-  
-  store.find('group', 1).then(async(function(group) {   
-    ajaxResponse({"objects":
-      [
-        { id: 1, name: "Rein Heinrichs", resource_uri: '/api/v1/person/1/' },
-        { id: 2, name: "Tom Dale", resource_uri: '/api/v1/person/2/' },
-        { id: 3, name: "Yehuda Katz", resource_uri: '/api/v1/person/3/' }
-        ]});
-  
-    ok(true, "passed");
-  
-    return group.get('people');
-  })).then(async(function(people) {
-    expectUrl("/api/v1/person/set/1;2;3/");
-    expectType("GET");
-
-    var rein = store.getById('person', 1),
-        tom = store.getById('person', 2),
-        yehuda = store.getById('person', 3);
-
-    deepEqual(rein.getProperties('id', 'name'), { id: "1", name: "Rein Heinrichs" });
-    deepEqual(tom.getProperties('id', 'name'), { id: "2", name: "Tom Dale" });
-    deepEqual(yehuda.getProperties('id', 'name'), { id: "3", name: "Yehuda Katz" });
-
-    deepEqual(people.toArray(), [ rein, tom, yehuda ], "The correct records are in the array");
-  }));
-});
-
-
-test("finding people by a query", function() {
-  var people, rein, tom, yehuda;
-
-  ajaxResponse({
-    objects: [
-      { id: 1, name: "Rein Heinrichs", resource_uri: '/api/v1/person/1/' },
-      { id: 2, name: "Tom Dale", resource_uri: '/api/v1/person/2/' },
-      { id: 3, name: "Yehuda Katz", resource_uri: '/api/v1/person/3/' }
-    ]
-  });
-
-  store.find('person', {page: 1}).then(async(function(people) {
-    equal(passedUrl, "/api/v1/person/");
-    equal(passedVerb, "GET");
-    deepEqual(passedHash.data, { page: 1 });
-
-    equal(get(people, 'length'), 3, "the people are now loaded");
-
-    rein = people.objectAt(0);
-    equal(get(rein, 'name'), "Rein Heinrichs");
-    equal(get(rein, 'id'), 1);
-
-    tom = people.objectAt(1);
-    equal(get(tom, 'name'), "Tom Dale");
-    equal(get(tom, 'id'), 2);
-
-    yehuda = people.objectAt(2);
-    equal(get(yehuda, 'name'), "Yehuda Katz");
-    equal(get(yehuda, 'id'), 3);
-
-    people.forEach(function(person) {
-      equal(get(person, 'isLoaded'), true, "the person is being loaded");
-    });
-
-  }));
-});
-
 test("if you specify a server domain then it is prepended onto all URLs", function() {
-  adapter.setProperties({
-    host: 'http://localhost:8000'
-  });
+  var adapter = this.subject();
+  adapter.set('serverDomain', 'http://localhost:8000');
   equal(adapter.buildURL('person', 1), "http://localhost:8000/api/v1/person/1/");
 });
 
@@ -400,31 +156,6 @@ test("the adapter can use custom keys", function() {
     equal(people.get('isLoaded'), true, "The RecordArray is loaded");
     deepEqual(people.toArray(), [ person1, person2 ], "The correct records are in the array");
   }));
-});
-
-test("creating an item with a belongsTo relationship urlifies the Resource URI (default key)", function() {
-  store.push('person', {id: 1, name: "Maurice Moss"});
-
-  store.find('person', 1).then(async(function(person) {
-    expectState(person, 'new', false);
-    expectState(person, 'loaded');
-    expectState(person, 'dirty', false);
-
-    var task = store.createRecord('task', {name: "Get a bike!"});
-    expectState(task, 'new', true);
-    expectState(task, 'dirty', true);
-    set(task, 'owner', person);
-
-    //ajaxResponse({ name: "Get a bike!", owner_id: "/api/v1/person/1/"});
-    ajaxResponse();
-
-    return task.save();
-  })).then(async(function(task) {
-    expectUrl('/api/v1/task/', 'create URL');
-    expectType("POST");
-    expectData({ name: "Get a bike!", owner: "/api/v1/person/1/"});
-  }));
-
 });
 
 /*
@@ -623,23 +354,7 @@ test("async hasMany save should resolve promise before post", function() {
   }));
 });
   
-test("metadata is accessible", function () {
-  ajaxResponse({
-    meta: { offset: 2, limit: 0 },
-    objects: [
-      {id: 1, name: "Maurice Moss"},
-      {id: 2, name: "Roy"},
-    ]
-  });
-  
-  store.findAll('person').then(async(function (people) {
-    equal(
-      store.metadataFor('person').offset,
-      2,
-      "Metadata can be accessed with metadataFor"
-      );
-  }));
-});
+
 
 test("findQuery - payload 'meta' is accessible on the record array", function() {
   ajaxResponse({
