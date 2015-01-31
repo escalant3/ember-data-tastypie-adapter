@@ -1,6 +1,7 @@
-var get = Ember.get, set = Ember.set;
+import DS from 'ember-data';
+import Ember from 'ember';
 
-var DjangoTastypieSerializer = DS.RESTSerializer.extend({
+export default DS.RESTSerializer.extend({
 
   keyForAttribute: function(attr) {
     return Ember.String.decamelize(attr);
@@ -70,7 +71,7 @@ var DjangoTastypieSerializer = DS.RESTSerializer.extend({
   },
 
   // Tastypie defaults do not support sideloading
-  sideload: function(loader, type, json, root) {
+  sideload: function() {
   },
 
   resourceUriToId: function (resourceUri) {
@@ -85,7 +86,7 @@ var DjangoTastypieSerializer = DS.RESTSerializer.extend({
   },
 
   normalizeRelationships: function (type, hash) {
-    var payloadKey, key, self = this;
+    var payloadKey, self = this;
 
     type.eachRelationship(function (key, relationship) {
       if (this.keyForRelationship) {
@@ -100,14 +101,14 @@ var DjangoTastypieSerializer = DS.RESTSerializer.extend({
         if (relationship.kind === 'belongsTo'){
           var resourceUri = hash[key];
           if (!isEmbedded) {
-            Ember.assert(relationship.key + " is an async relation but the related data in the response is not a URI", typeof resourceUri == "string");
+            Ember.assert(relationship.key + " is an async relation but the related data in the response is not a URI", typeof resourceUri === "string");
           }
           hash[key] = self.resourceUriToId(hash[key]);
         } else if (relationship.kind === 'hasMany'){
           var ids = [];
           hash[key].forEach(function (resourceUri){
             if (!isEmbedded) {
-              Ember.assert(relationship.key + " is an async relation but the related data in the response is not a URI", typeof resourceUri == "string");
+              Ember.assert(relationship.key + " is an async relation but the related data in the response is not a URI", typeof resourceUri === "string");
             }
             ids.push(self.resourceUriToId(resourceUri));
           });
@@ -137,7 +138,7 @@ var DjangoTastypieSerializer = DS.RESTSerializer.extend({
 
   isEmbedded: function(relationship) {
     var key = relationship.key;
-    var attrs = get(this, 'attrs');
+    var attrs = Ember.get(this, 'attrs');
     var config = attrs && attrs[key] ? attrs[key] : false;
     if (config) {
         // Per model serializer will take preference for the embedded mode
@@ -159,7 +160,7 @@ var DjangoTastypieSerializer = DS.RESTSerializer.extend({
     var self = this;
 
     type.eachRelationship(function(key, relationship) {
-      var attrs = get(self, 'attrs');
+      var attrs = Ember.get(self, 'attrs');
       var config = attrs && attrs[key] ? attrs[key] : false;
 
       if (self.isEmbedded(relationship)) {
@@ -174,8 +175,7 @@ var DjangoTastypieSerializer = DS.RESTSerializer.extend({
 
   extractEmbeddedFromHasMany: function(store, key, relationship, payload, config) {
     var self = this;
-    var serializer = store.serializerFor(relationship.type.typeKey),
-    primaryKey = get(this, 'primaryKey');
+    var serializer = store.serializerFor(relationship.type.typeKey);
 
     key = config.key ? config.key : this.keyForAttribute(key);
 
@@ -200,8 +200,7 @@ var DjangoTastypieSerializer = DS.RESTSerializer.extend({
   },
 
   extractEmbeddedFromBelongsTo: function(store, key, relationship, payload, config) {
-    var serializer = store.serializerFor(relationship.type.typeKey),
-      primaryKey = get(this, 'primaryKey');
+    var serializer = store.serializerFor(relationship.type.typeKey);
 
     key = config.key ? config.key : this.keyForAttribute(key);
 
@@ -227,13 +226,14 @@ var DjangoTastypieSerializer = DS.RESTSerializer.extend({
   },
 
   relationshipToResourceUri: function (relationship, value){
-    if (!value)
+    if (!value) {
       return value;
+    }
 
     var store = relationship.type.store,
         typeKey = relationship.type.typeKey;
 
-    return store.adapterFor(typeKey).buildURL(typeKey, get(value, 'id'));
+    return store.adapterFor(typeKey).buildURL(typeKey, Ember.get(value, 'id'));
   },
 
   serializeIntoHash: function (data, type, record, options) {
@@ -245,7 +245,7 @@ var DjangoTastypieSerializer = DS.RESTSerializer.extend({
     var key = relationship.key;
     key = this.keyForRelationship ? this.keyForRelationship(key, "belongsTo") : key;
 
-    json[key] = this.relationshipToResourceUri(relationship, get(record, relationship.key));
+    json[key] = this.relationshipToResourceUri(relationship, Ember.get(record, relationship.key));
   },
 
   serializeHasMany: function(record, json, relationship) {
@@ -256,7 +256,7 @@ var DjangoTastypieSerializer = DS.RESTSerializer.extend({
 
     if (relationshipType === 'manyToNone' || relationshipType === 'manyToMany' || relationshipType === 'manyToOne') {
       if (this.isEmbedded(relationship)) {
-        json[key] = get(record, key).map(function (relation) {
+        json[key] = Ember.get(record, key).map(function (relation) {
           var data = relation.serialize();
 
           // Embedded objects need the ID for update operations
@@ -266,7 +266,7 @@ var DjangoTastypieSerializer = DS.RESTSerializer.extend({
           return data;
         });
       } else {
-        var relationData = get(record, relationship.key); 
+        var relationData = Ember.get(record, relationship.key); 
         
         // We can't deal with promises here. We need actual data
         if (relationData instanceof DS.PromiseArray) {
@@ -277,7 +277,7 @@ var DjangoTastypieSerializer = DS.RESTSerializer.extend({
           } else {
             // If the property hasn't been fulfilled then it hasn't changed.
             // Fall back to the internal data. It contains enough for relationshipToResourceUri.
-            relationData = get(record, key).mapBy('id').map(function(_id) {
+            relationData = Ember.get(record, key).mapBy('id').map(function(_id) {
               return {id: _id};
             }) || [];
           }
@@ -291,5 +291,3 @@ var DjangoTastypieSerializer = DS.RESTSerializer.extend({
     }
   }
 });
-
-export default DjangoTastypieSerializer;

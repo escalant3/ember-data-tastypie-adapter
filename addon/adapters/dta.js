@@ -1,12 +1,9 @@
-var get = Ember.get, set = Ember.set;
+import DS from 'ember-data';
+import Ember from 'ember';
+
 var forEach = Ember.ArrayPolyfills.forEach;
 
-function rejectionHandler(reason) {
-  Ember.Logger.error(reason, reason.message);
-  throw reason;
-}
-
-var DjangoTastypieAdapter = DS.RESTAdapter.extend({
+export default DS.RESTAdapter.extend({
   /**
     Set this parameter if you are planning to do cross-site
     requests to the destination domain. Remember trailing slash
@@ -55,7 +52,7 @@ var DjangoTastypieAdapter = DS.RESTAdapter.extend({
     return url;
   },
 
-  findMany: function(store, type, ids, records) {
+  findMany: function(store, type, ids) {
     return this.ajax(Ember.String.fmt('%@set/%@/', this.buildURL(type.typeKey), ids.join(';')),
                      'GET');
   },
@@ -133,7 +130,7 @@ var DjangoTastypieAdapter = DS.RESTAdapter.extend({
       }
 
       var groupsArray = [];
-      groups.forEach(function(group, key){
+      groups.forEach(function(group){
         var paramNameLength = '&ids%5B%5D='.length;
         var splitGroups = splitGroupToFitInUrl(group, maxUrlLength, paramNameLength);
 
@@ -177,4 +174,11 @@ var DjangoTastypieAdapter = DS.RESTAdapter.extend({
   }
 });
 
-export default DjangoTastypieAdapter;
+//From http://stackoverflow.com/questions/280634/endswith-in-javascript
+function endsWith(string, suffix) {
+  if (typeof String.prototype.endsWith !== 'function') {
+    return string.indexOf(suffix, string.length - suffix.length) !== -1;
+  } else {
+    return string.endsWith(suffix);
+  }
+}
