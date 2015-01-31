@@ -1,9 +1,22 @@
+import Ember from 'ember';
+import { moduleFor, test } from 'ember-qunit';
+
 var get = Ember.get, set = Ember.set, hash = Ember.RSVP.hash;
 
 var env, store, adapter;
 var originalAjax, passedUrl, passedVerb, passedHash;
 var Person, Role, Group, Task, Comment, Post;
+var run = Ember.run;
 
+moduleFor('adapter:application', 'DjangoTastypieAdapter', {
+  // The integration tests don't work with the host set so the host
+  // setting is being overridden directly.
+  subject: function(options, factory) {
+    return factory.create({'namespace': 'api/v1'});
+  }
+});
+
+/*
 module("integration/django_tastypie_adapter - DjangoTastypieAdapter", {
   setup: function() {
     Person = DS.Model.extend({
@@ -61,7 +74,7 @@ module("integration/django_tastypie_adapter - DjangoTastypieAdapter", {
     passedUrl = passedVerb = passedHash = null;
   }
 });
-
+*/
 function ajaxResponse(value) {
   adapter.ajax = function(url, verb, hash) {
     passedUrl = url;
@@ -97,14 +110,8 @@ var expectStates = function(arr, state, value) {
   });
 };
 
-test("can create a record", function() {
-    var record = store.createRecord('person');
-    set(record, 'name', 'bar');
-
-    equal(get(record, 'name'), 'bar', "property was set on the record");
-});
-
 test('buildURL - should not use plurals', function() {
+  var adapter = this.subject();
   equal(adapter.buildURL('person', 1), "/api/v1/person/1/");
 });
 
@@ -125,19 +132,6 @@ test("creating a person makes a POST to /api/v1/person, with the data hash", fun
 });
 */
 
-test("find - basic payload", function() {
-
-  ajaxResponse({ id: 1, name: "Rails is omakase", resource_uri: '/api/v1/person/1/' });
-
-  store.find('person', 1).then(async(function(person) {
-    equal(passedUrl, "/api/v1/person/1/");
-    equal(passedVerb, "GET");
-    equal(passedHash, undefined);
-
-    equal(person.get('id'), "1");
-    equal(person.get('name'), "Rails is omakase");
-  }));
-});
 
 test("updating a person makes a PUT to /people/:id with the data hash", function() {
   set(adapter, 'bulkCommit', false);
