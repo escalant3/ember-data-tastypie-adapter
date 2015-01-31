@@ -273,7 +273,7 @@ test("sync hasMany find with full=True", function() {
     equal(post.get('text'), "Some Text", "the post has the correct data");
   }));
   
-})
+});
 
 test("sync hasMany save should not need to resolve relationship", function() {
   
@@ -291,7 +291,7 @@ test("sync hasMany save should not need to resolve relationship", function() {
   
   adapter.findMany = function() {
     ok(false, "Should not get here.");
-  }
+  };
   
   store.find('post', 1).then(async(function(post) {
     post.set('text', 'New Text');
@@ -335,7 +335,7 @@ test("async hasMany save should resolve promise before post", function() {
         {id: 1, text: "Comment 1", post: '/api/v1/post/1/', resource_uri: '/api/v1/comment/1/'}, 
         {id: 2, text: "Comment 2", post: '/api/v1/post/1/', resource_uri: '/api/v1/comment/2/'}
         ]});
-  }
+  };
   
   store.find('post', 1).then(async(function(post) {
     post.set('text', 'New Text');
