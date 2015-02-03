@@ -175,7 +175,7 @@ export default DS.RESTSerializer.extend({
 
   extractEmbeddedFromHasMany: function(store, key, relationship, payload, config) {
     var self = this;
-    var serializer = store.serializerFor(relationship.type.typeKey);
+    var serializer = store.serializerFor(relationship.type);
 
     key = config.key ? config.key : this.keyForAttribute(key);
 
@@ -186,7 +186,7 @@ export default DS.RESTSerializer.extend({
     }
 
     Ember.EnumerableUtils.forEach(payload[key], function(data) {
-      var embeddedType = store.modelFor(relationship.type.typeKey);
+      var embeddedType = store.modelFor(relationship.type);
 
       serializer.extractEmbeddedFromPayload(store, embeddedType, data);
 
@@ -200,7 +200,7 @@ export default DS.RESTSerializer.extend({
   },
 
   extractEmbeddedFromBelongsTo: function(store, key, relationship, payload, config) {
-    var serializer = store.serializerFor(relationship.type.typeKey);
+    var serializer = store.serializerFor(relationship.type);
 
     key = config.key ? config.key : this.keyForAttribute(key);
 
@@ -211,11 +211,11 @@ export default DS.RESTSerializer.extend({
     var data = payload[key];
     
     // Don't try to process data if it's not data!
-    if (serializer.isResourceUri(store.adapterFor(relationship.type.typeKey), data)) {
+    if (serializer.isResourceUri(store.adapterFor(relationship.type), data)) {
       return;
     }
     
-    var embeddedType = store.modelFor(relationship.type.typeKey);
+    var embeddedType = store.modelFor(relationship.type);
 
     serializer.extractEmbeddedFromPayload(store, embeddedType, data);
 
@@ -256,7 +256,7 @@ export default DS.RESTSerializer.extend({
 
     if (relationshipType === 'manyToNone' || relationshipType === 'manyToMany' || relationshipType === 'manyToOne') {
       if (this.isEmbedded(relationship)) {
-        json[key] = Ember.get(record, key).map(function (relation) {
+        json[key] = Ember.get(record, relationship.key).map(function (relation) {
           var data = relation.serialize();
 
           // Embedded objects need the ID for update operations
@@ -277,7 +277,7 @@ export default DS.RESTSerializer.extend({
           } else {
             // If the property hasn't been fulfilled then it hasn't changed.
             // Fall back to the internal data. It contains enough for relationshipToResourceUri.
-            relationData = Ember.get(record, key).mapBy('id').map(function(_id) {
+            relationData = Ember.get(record, relationship.key).mapBy('id').map(function(_id) {
               return {id: _id};
             }) || [];
           }
