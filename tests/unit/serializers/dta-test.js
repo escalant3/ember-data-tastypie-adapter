@@ -133,7 +133,8 @@ test("serialize", function() {
   deepEqual(json, {
     first_name: "Tom",
     last_name: "Dale",
-    home_planet: '/api/v1/homePlanet/'+get(league, "id")+'/'
+    home_planet: '/api/v1/homePlanet/'+get(league, "id")+'/',
+    evil_minions: []
   });
 });
 
@@ -180,10 +181,13 @@ test("extractSingle", function() {
 
   var json_hash = {
     id: "1", name: "Umber", villains: ["/api/v1/super_villain/1/"],
-    resource_uri: '/api/v1/homePlanet/1/'
+    resource_uri: '/api/v1/home_planet/1/'
   };
 
-  var json = serializer.extractSingle(store, store.modelFor('home-planet'), json_hash);
+  var json;
+  run(function() {
+    json = serializer.extractSingle(store, store.modelFor('home-planet'), json_hash);
+  });
 
   deepEqual(json, {
     "id": "1",
@@ -274,7 +278,10 @@ test("extractSingle with embedded objects inside embedded objects", function() {
     resource_uri: '/api/v1/home_planet/1/'
   };
 
-  var json = serializer.extractSingle(store, store.modelFor('home-planet'), json_hash);
+  var json;
+  run(function() {
+    json = serializer.extractSingle(store, store.modelFor('home-planet'), json_hash);
+  });
 
   deepEqual(json, {
     id: "1",
@@ -322,7 +329,11 @@ test("extractSingle with embedded objects of same type", function() {
     }],
     resource_uri: '/api/v1/comment/1/'
   };
-  var json = serializer.extractSingle(store, store.modelFor('comment'), json_hash);
+
+  var json;
+  run(function() {
+    json = serializer.extractSingle(store, store.modelFor('comment'), json_hash);
+  });
 
   deepEqual(json, {
     id: "1",
@@ -449,7 +460,7 @@ test("extractArray", function() {
 
   var json_hash = {
     meta: {},
-    objects: [{id: "1", name: "Umber", villains: ['/api/v1/superVillain/1/'], resource_uri: '/api/v1/homePlanet/1/'}]
+    objects: [{id: "1", name: "Umber", villains: ['/api/v1/super_villain/1/'], resource_uri: '/api/v1/home_planet/1/'}]
   };
 
   var array = serializer.extractArray(store, store.modelFor('home-planet'), json_hash);
@@ -689,10 +700,10 @@ test("serialize with embedded objects", function() {
   deepEqual(json, {
     name: "Villain League",
     villains: [{
-      id: get(tom, "id"),
+      id: tom.get("id"),
       first_name: "Tom",
       last_name: "Dale",
-      home_planet: '/api/v1/homePlanet/' + get(league, "id") +'/',
+      home_planet: '/api/v1/homePlanet/' + league.get("id") +'/',
       evil_minions: []
     }]
   });
