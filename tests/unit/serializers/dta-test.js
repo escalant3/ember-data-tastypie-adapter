@@ -8,6 +8,7 @@ import SuperVillain from '../../../models/super-villain';
 import YellowMinion from '../../../models/yellow-minion';
 import DoomsdayDevice from '../../../models/doomsday-device';
 import Course from '../../../models/course';
+import Unit from '../../../models/unit';
 import Comment from '../../../models/comment';
 
 var get = Ember.get, set = Ember.set;
@@ -15,7 +16,9 @@ var run = Ember.run;
 /* var HomePlanet, league, SuperVillain, superVillain, EvilMinion, YellowMinion, DoomsdayDevice, PopularVillain, Comment, Course, Unit, env; */
 
 moduleFor('serializer:application', 'DjangoTastypieSerializer', {
-  needs: ['model:super-villain', 'model:home-planet', 'model:evil-minion', 'model:course', 'model:unit']
+  needs: ['model:super-villain', 'model:home-planet', 'model:evil-minion',
+      'model:yellow-minion', 'model:doomsday-device',
+      'model:course', 'model:unit', 'model:comment']
 }, function(container, context, defaultSubject) {
   if (DS._setupContainer) {
     DS._setupContainer(container);
@@ -118,14 +121,14 @@ test("serialize", function() {
   var serializer = this.subject();
   var store = this.store();
 
-  var league, tom;
+  var league, tom, json;
 
   run(function() {
     league = store.createRecord('home-planet', { name: "Villain League", id: "123" });
     tom = store.createRecord('super-villain', { firstName: "Tom", lastName: "Dale", homePlanet: league });
-  });
 
-  var json = serializer.serialize(tom);
+    json = serializer.serialize(tom);
+  });
 
   deepEqual(json, {
     first_name: "Tom",
@@ -137,13 +140,12 @@ test("serialize", function() {
 test("serializeIntoHash", function() {
   var serializer = this.subject();
   var store = this.store();
-  var league;
+  var league, json = {};
   run(function() {
-    league = store.createRecord(HomePlanet, { name: "Umber", id: "123" });
-  });
-  var json = {};
+    league = store.createRecord('home-planet', { name: "Umber", id: "123" });
 
-  serializer.serializeIntoHash(json, HomePlanet, league);
+    serializer.serializeIntoHash(json, store.modelFor('home-planet'), league);
+  });
 
   deepEqual(json, {
     name: "Umber",
@@ -152,10 +154,14 @@ test("serializeIntoHash", function() {
 });
 
 test("normalize", function() {
+  var store = this.store();
   var serializer = this.subject();
   var superVillain_hash = {first_name: "Tom", last_name: "Dale", home_planet: "/api/v1/homePlanet/123/", evil_minions: ['/api/v1/evilMinion/1/', '/api/v1/evilMinion/2/'], resource_uri: '/api/v1/superVillain/1/'};
 
-  var json = serializer.normalize('super-villain', superVillain_hash, "super-villain");
+  var json;
+  run(function() {
+    json = serializer.normalize(store.modelFor('super-villain'), superVillain_hash, "super-villain");
+  });
 
   deepEqual(json, {
     id: "1",
@@ -177,7 +183,7 @@ test("extractSingle", function() {
     resource_uri: '/api/v1/homePlanet/1/'
   };
 
-  var json = serializer.extractSingle(store, HomePlanet, json_hash);
+  var json = serializer.extractSingle(store, store.modelFor('home-planet'), json_hash);
 
   deepEqual(json, {
     "id": "1",
@@ -209,7 +215,10 @@ test("extractSingle with embedded objects", function() {
     resource_uri: "/api/v1/home_planet/1/"
   };
 
-  var json = serializer.extractSingle(store, HomePlanet, json_hash);
+  var json;
+  run(function() {
+    json = serializer.extractSingle(store, store.modelFor('home-planet'), json_hash);
+  });
 
   deepEqual(json, {
     id: "1",
@@ -265,20 +274,22 @@ test("extractSingle with embedded objects inside embedded objects", function() {
     resource_uri: '/api/v1/home_planet/1/'
   };
 
-  var json = serializer.extractSingle(store, HomePlanet, json_hash);
+  var json = serializer.extractSingle(store, store.modelFor('home-planet'), json_hash);
 
   deepEqual(json, {
     id: "1",
     name: "Umber",
     villains: ["1"]
   });
-  store.find("superVillain", 1).then(function(villain) {
-    equal(villain.get('firstName'), "Tom");
-    equal(villain.get('evilMinions.length'), 1, "Should load the embedded child");
-    equal(villain.get('evilMinions.firstObject.name'), "Alex", "Should load the embedded child");
-  });
-  store.find("evilMinion", 1).then(function(minion) {
-    equal(minion.get('name'), "Alex");
+  run(function() {
+    store.find("super-villain", 1).then(function(villain) {
+      equal(villain.get('firstName'), "Tom");
+      equal(villain.get('evilMinions.length'), 1, "Should load the embedded child");
+      equal(villain.get('evilMinions.firstObject.name'), "Alex", "Should load the embedded child");
+    });
+    store.find("evil-minion", 1).then(function(minion) {
+      equal(minion.get('name'), "Alex");
+    });
   });
 });
 
@@ -311,7 +322,7 @@ test("extractSingle with embedded objects of same type", function() {
     }],
     resource_uri: '/api/v1/comment/1/'
   };
-  var json = serializer.extractSingle(store, Comment, json_hash);
+  var json = serializer.extractSingle(store, store.modelFor('comment'), json_hash);
 
   deepEqual(json, {
     id: "1",
@@ -358,7 +369,10 @@ test("extractSingle with embedded objects inside embedded objects of same type",
     }],
     resource_uri: '/api/v1/comment/1/'
   };
-  var json = serializer.extractSingle(store, Comment, json_hash);
+  var json;
+  run(function() {
+    json = serializer.extractSingle(store, store.modelFor('comment'), json_hash);
+  });
 
   deepEqual(json, {
     id: "1",
@@ -408,7 +422,11 @@ test("extractSingle with embedded objects of same type, but from separate attrib
     }],
     resource_uri: '/api/v1/course/1/'
   };
-  var json = serializer.extractSingle(store, Course, json_hash);
+
+  var json;
+  run(function() {
+    json = serializer.extractSingle(store, store.modelFor('course'), json_hash);
+  });
 
   deepEqual(json, {
     id: "1",
@@ -427,14 +445,14 @@ test("extractArray", function() {
   var container = this.container();
   var store = this.store();
   var serializer = this.subject();
-  container.register('adapter:superVillain', DjangoTastypieAdapter);
+  container.register('adapter:super-villain', DjangoTastypieAdapter);
 
   var json_hash = {
     meta: {},
     objects: [{id: "1", name: "Umber", villains: ['/api/v1/superVillain/1/'], resource_uri: '/api/v1/homePlanet/1/'}]
   };
 
-  var array = serializer.extractArray(store, HomePlanet, json_hash);
+  var array = serializer.extractArray(store, store.modelFor('home-planet'), json_hash);
 
   deepEqual(array, [{
     "id": "1",
@@ -446,14 +464,14 @@ test("extractArray", function() {
 test("extractArray with embedded objects", function() {
   var container = this.container();
   var store = this.store();
-  container.register('adapter:superVillain', DjangoTastypieAdapter);
-  container.register('serializer:homePlanet', DjangoTastypieSerializer.extend({
+  container.register('adapter:super-villain', DjangoTastypieAdapter);
+  container.register('serializer:home-planet', DjangoTastypieSerializer.extend({
     attrs: {
       villains: {embedded: 'always'}
     }
   }));
 
-  var serializer = container.lookup("serializer:homePlanet");
+  var serializer = container.lookup("serializer:home-planet");
 
   var json_hash = {
     objects: [{
@@ -469,7 +487,10 @@ test("extractArray with embedded objects", function() {
     }]
   };
 
-  var array = serializer.extractArray(store, HomePlanet, json_hash);
+  var array;
+  run(function() {
+    array = serializer.extractArray(store, store.modelFor('home-planet'), json_hash);
+  });
 
   deepEqual(array, [{
     id: "1",
@@ -477,8 +498,10 @@ test("extractArray with embedded objects", function() {
     villains: ["1"]
   }]);
 
-  store.find("superVillain", 1).then(function(minion){
-    equal(minion.get('firstName'), "Tom");
+  run(function() {
+    store.find("super-villain", 1).then(function(minion){
+      equal(minion.get('firstName'), "Tom");
+    });
   });
 });
 
@@ -515,7 +538,10 @@ test("extractArray with embedded objects of same type as primary type", function
     }]
   };
 
-  var array = serializer.extractArray(store, Comment, json_hash);
+  var array;
+  run(function() {
+    array = serializer.extractArray(store, store.modelFor('comment'), json_hash);
+  });
 
   deepEqual(array, [{
     id: "1",
@@ -587,7 +613,11 @@ test("extractArray with embedded objects of same type, but from separate attribu
       }]
     }]
   };
-  var json = serializer.extractArray(store, Course, json_hash);
+  var json;
+
+  run(function() {
+    json = serializer.extractArray(store, store.modelFor('course'), json_hash);
+  });
 
   deepEqual(json, [{
     id: "1",
@@ -612,11 +642,13 @@ test("extractArray with embedded objects of same type, but from separate attribu
 test("serialize polymorphic", function() {
   var store = this.store();
   var serializer = this.subject();
-  var tom = store.createRecord(YellowMinion,   {name: "Alex", id: "124"});
-  var ray = store.createRecord(DoomsdayDevice, {evilMinion: tom, name: "DeathRay"});
+  var tom, ray, json;
+  run(function() {
+    tom = store.createRecord('yellow-minion',   {name: "Alex", id: "124"});
+    ray = store.createRecord('doomsday-device', {evilMinion: tom, name: "DeathRay"});
 
-  var json = serializer.serialize(ray);
-
+    json = serializer.serialize(ray);
+  });
   deepEqual(json, {
     name:  "DeathRay",
     evil_minionType: "yellowMinion",
@@ -629,25 +661,30 @@ test("serialize with embedded objects", function() {
   var store = this.store();
 
   SuperVillain.reopen({
-    homePlanet:    DS.belongsTo("homePlanet"),
-    evilMinions:   DS.hasMany("evilMinion", { async: true })
+    homePlanet:    DS.belongsTo("home-planet"),
+    evilMinions:   DS.hasMany("evil-minion", { async: true })
   });
   
   HomePlanet.reopen({
-    villains:      DS.hasMany('superVillain', { async: false })
+    villains:      DS.hasMany('super-villain', { async: false })
   });
-  
-  var league = store.createRecord(HomePlanet, { name: "Villain League", id: "123" });
-  var tom = store.createRecord(SuperVillain, { id: 1, firstName: "Tom", lastName: "Dale", homePlanet: league });
 
-  container.register('serializer:homePlanet', DjangoTastypieSerializer.extend({
+  var league, tom;
+  run(function() {
+    league = store.createRecord('home-planet', { name: "Villain League", id: "123" });
+    tom = store.createRecord('super-villain', { id: 1, firstName: "Tom", lastName: "Dale", homePlanet: league });
+  });
+
+  container.register('serializer:home-planet', DjangoTastypieSerializer.extend({
     attrs: {
       villains: {embedded: 'always'}
     }
   }));
-  var serializer = container.lookup("serializer:homePlanet");
-
-  var json = serializer.serialize(league);
+  var serializer = container.lookup("serializer:home-planet");
+  var json;
+  run(function() {
+    json = serializer.serialize(league);
+  });
 
   deepEqual(json, {
     name: "Villain League",
