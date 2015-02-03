@@ -185,24 +185,32 @@ test("finding all people makes a GET to /api/v1/person/", function() {
 
 test("since gets set if needed for pagination", function() {
 
-  ajaxResponse({"objects": [{id: 1, name: "Roy", resource_uri: '/api/v1/person/1/'}, {id: 2, name: "Moss", resource_uri: '/api/v1/person/2/'}],
-    "meta": {limit: 2, next: "nextUrl&offset=2", offset: 0, previous: null, total_count: 25}});
+  ajaxResponse({
+    objects: [{id: 1, name: "Roy", resource_uri: '/api/v1/person/1/'}, {
+      id: 2,
+      name: "Moss",
+      resource_uri: '/api/v1/person/2/'
+    }],
+    meta: {limit: 2, next: "nextUrl&offset=2", offset: 0, previous: null, total_count: 25}
+  });
 
-  run(store, 'findAll', 'person').then(function(people) {
-    expectUrl("/api/v1/person/", "the findAll URL");
-    equal(people.get('meta.offset', 0, "Offset is set"));
-    equal(people.get('meta.next', "nextUrl&offset=2", "Next is set"));
-    equal(people.get('meta.totalCount', 25, "Total count is correct"));
+  run(function() {
+    store.find('person').then(function(people) {
+      expectUrl("/api/v1/person/", "the findAll URL");
+      equal(people.get('meta.offset', 0, "Offset is set"));
+      equal(people.get('meta.next', "nextUrl&offset=2", "Next is set"));
+      equal(people.get('meta.totalCount', 25, "Total count is correct"));
 
-    ajaxResponse({"objects": [{id: 3, name: "Roy", resource_uri: '/api/v1/person/3/'}, {id: 4, name: "Moss", resource_uri: '/api/v1/person/4/'}],
-      "meta": {limit: 2, next: "nextUrl&offset=4", offset: 2, previous: "previousUrl&offset=0", total_count: 25}});
+      ajaxResponse({"objects": [{id: 3, name: "Roy", resource_uri: '/api/v1/person/3/'}, {id: 4, name: "Moss", resource_uri: '/api/v1/person/4/'}],
+        "meta": {limit: 2, next: "nextUrl&offset=4", offset: 2, previous: "previousUrl&offset=0", total_count: 25}});
 
-    return store.findAll('person');
-  }).then(function(morePeople) {
-    deepEqual(passedHash.data, { offset: "2" });
+      return store.find('person');
+    }).then(function(morePeople) {
+      deepEqual(passedHash.data, { offset: "2" });
 
-    equal(store.metadataFor('person').offset, 2, "Offset is correct");
-    expectUrl("/api/v1/person/", "the findAll URL is the same with the since parameter");
+      equal(store.metadataFor('person').offset, 2, "Offset is correct");
+      expectUrl("/api/v1/person/", "the findAll URL is the same with the since parameter");
+    });
   });
 
 });
@@ -348,7 +356,7 @@ test("metadata is accessible", function () {
   });
 
   run(function() {
-    store.findAll('person').then(function (people) {
+    store.find('person').then(function (people) {
       equal(store.metadataFor('person').offset,
           2,
           "Metadata can be accessed with metadataFor");
