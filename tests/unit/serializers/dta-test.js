@@ -1,44 +1,35 @@
-var get = Ember.get, set = Ember.set;
-var HomePlanet, league, SuperVillain, superVillain, EvilMinion, YellowMinion, DoomsdayDevice, PopularVillain, Comment, Course, Unit, env;
+import DS from 'ember-data';
+import Ember from 'ember';
+import { moduleFor, test } from 'ember-qunit';
+import DjangoTastypieAdapter from 'ember-data-tastypie-adapter/adapters/dta';
 
+var get = Ember.get, set = Ember.set;
+var run = Ember.run;
+/* var HomePlanet, league, SuperVillain, superVillain, EvilMinion, YellowMinion, DoomsdayDevice, PopularVillain, Comment, Course, Unit, env; */
+
+moduleFor('serializer:application', 'DjangoTastypieSerializer', {
+  needs: ['model:super-villain', 'model:home-planet', 'model:evil-minion']
+}, function(container, context, defaultSubject) {
+  if (DS._setupContainer) {
+    DS._setupContainer(container);
+  } else {
+    container.register('store:main', DS.Store);
+  }
+
+  var adapterFactory = container.lookupFactory('adapter:application');
+  if (!adapterFactory) {
+    container.register('adapter:application', DjangoTastypieAdapter);
+  }
+
+  context.__setup_properties__.store = function(){
+    return container.lookup('store:main');
+  };
+});
+
+/*
 module("integration/django_tastypie_adapter - DjangoTastypieSerializer", {
   setup: function() {
-    SuperVillain = DS.Model.extend({
-      firstName:     DS.attr('string'),
-      lastName:      DS.attr('string'),
-      homePlanet:    DS.belongsTo("homePlanet", {async: true}),
-      evilMinions:   DS.hasMany("evilMinion", {async: true})
-    });
-    HomePlanet = DS.Model.extend({
-      name:          DS.attr('string'),
-      villains:      DS.hasMany('superVillain', {async: true})
-    });
-    EvilMinion = DS.Model.extend({
-      superVillain: DS.belongsTo('superVillain'),
-      name:         DS.attr('string')
-    });
-    YellowMinion = EvilMinion.extend();
-    DoomsdayDevice = DS.Model.extend({
-      name:         DS.attr('string'),
-      evilMinion:   DS.belongsTo('evilMinion', {polymorphic: true})
-    });
-    PopularVillain = DS.Model.extend({
-      name:         DS.attr('string'),
-      evilMinions:  DS.hasMany('evilMinion', {polymorphic: true})
-    });
-    Comment = DS.Model.extend({
-      body: DS.attr('string'),
-      root: DS.attr('boolean'),
-      children: DS.hasMany('comment')
-    });
-    Course = DS.Model.extend({
-      name: DS.attr('string'),
-      prerequisiteUnits: DS.hasMany('unit'),
-      units: DS.hasMany('unit')
-    });
-    Unit = DS.Model.extend({
-      name: DS.attr('string')
-    });
+
     env = setupStore({
       superVillain:   SuperVillain,
       homePlanet:     HomePlanet,
@@ -73,26 +64,38 @@ module("integration/django_tastypie_adapter - DjangoTastypieSerializer", {
     });
   }
 });
+*/
 
 test("serialize", function() {
-  league = env.store.createRecord(HomePlanet, { name: "Villain League", id: "123" });
-  var tom = env.store.createRecord(SuperVillain, { firstName: "Tom", lastName: "Dale", homePlanet: league });
+  var serializer = this.subject();
+  var store = this.store();
 
-  var json = env.dtSerializer.serialize(tom);
+  var league, tom;
+
+  run(function() {
+    league = store.createRecord('home-planet', { name: "Villain League", id: "123" });
+    tom = store.createRecord('super-villain', { firstName: "Tom", lastName: "Dale", homePlanet: league });
+  });
+
+  var json = serializer.serialize(tom);
 
   deepEqual(json, {
     first_name: "Tom",
     last_name: "Dale",
-    evil_minions: [],
     home_planet: '/api/v1/homePlanet/'+get(league, "id")+'/'
   });
 });
 
 test("serializeIntoHash", function() {
-  league = env.store.createRecord(HomePlanet, { name: "Umber", id: "123" });
+  var serializer = this.subject();
+  var store = this.store();
+  var league;
+  run(function() {
+    league = store.createRecord(HomePlanet, { name: "Umber", id: "123" });
+  });
   var json = {};
 
-  env.dtSerializer.serializeIntoHash(json, HomePlanet, league);
+  serializer.serializeIntoHash(json, HomePlanet, league);
 
   deepEqual(json, {
     name: "Umber",
@@ -101,9 +104,10 @@ test("serializeIntoHash", function() {
 });
 
 test("normalize", function() {
+  var serializer = this.subject();
   var superVillain_hash = {first_name: "Tom", last_name: "Dale", home_planet: "/api/v1/homePlanet/123/", evil_minions: ['/api/v1/evilMinion/1/', '/api/v1/evilMinion/2/'], resource_uri: '/api/v1/superVillain/1/'};
 
-  var json = env.dtSerializer.normalize(SuperVillain, superVillain_hash, "superVillain");
+  var json = serializer.normalize('super-villain', superVillain_hash, "super-villain");
 
   deepEqual(json, {
     id: "1",
