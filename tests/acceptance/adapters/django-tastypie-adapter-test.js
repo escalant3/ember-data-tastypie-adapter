@@ -497,8 +497,8 @@ test("sync hasMany save should not need to resolve relationship", function() {
       expectUrl('/api/v1/post/1/', 'modify Group URL');
       expectType("PUT");
       expectData({text: "New Text", comments: [
-        { id: "1", text: 'Comment 1', post: '/api/v1/post/1/' },
-        { id: "2", text: 'Comment 2', post: '/api/v1/post/1/' }
+        { id: "1", body: null, children: [], root: false, text: 'Comment 1', post: '/api/v1/post/1/' },
+        { id: "2", body: null, children: [], root: false, text: 'Comment 2', post: '/api/v1/post/1/' }
       ]});
 
       equal(post.get('isDirty'), false, "the post is not dirty anymore");
