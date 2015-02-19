@@ -448,15 +448,31 @@ test("extractSingle with embedded objects of same type, but from separate attrib
 test("extractArray", function() {
   var container = this.container;
   var store = this.container.lookup('store:main');
-  var serializer = this.subject();
+  HomePlanet.reopen({
+    villains: DS.hasMany('super-villain', {async: true})
+  });
+  container.register('serializer:home-planet', DjangoTastypieSerializer.extend({
+    attrs: {
+      villains: {embedded: false}
+    }
+  }));
+  container.register('serializer:super-villain', DjangoTastypieSerializer.extend({
+    attrs: {
+      evilMinions: {embedded: false}
+    }
+  }));
   container.register('adapter:super-villain', DjangoTastypieAdapter);
+  var serializer = this.container.lookup('serializer:home-planet');
 
   var json_hash = {
     meta: {},
-    objects: [{id: "1", name: "Umber", villains: ['/api/v1/superVillain/1/'], resource_uri: '/api/v1/homePlanet/1/'}]
+    objects: [{id: "1", name: "Umber", villains: ['/api/v1/super_villain/1/'], resource_uri: '/api/v1/home_planet/1/'}]
   };
 
-  var array = serializer.extractArray(store, store.modelFor('home-planet'), json_hash);
+  var array;
+  run(function() {
+    array = serializer.extractArray(store, store.modelFor('home-planet'), json_hash);
+  });
 
   deepEqual(array, [{
     "id": "1",
