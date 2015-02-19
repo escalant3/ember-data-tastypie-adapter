@@ -1,14 +1,20 @@
+---
 language: node_js
-node_js:
-  - "0.10"
+
+sudo: false
+
+cache:
+  directories:
+    - node_modules
+
+before_install:
+  - "npm config set spin false"
+  - "npm install -g npm@^2"
+
 install:
-- "rm -r dist"
-- "npm install"
-- "bower install"
-- "npm run-script dist"
+  - npm install -g bower
+  - npm install
+  - bower install
+
 script:
-  - npm run-script test
-env:
-  global:
-  - BROCCOLI_ENV="production"
-  - EMBER_ENV="production"
+  - npm test
