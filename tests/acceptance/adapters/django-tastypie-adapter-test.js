@@ -1,4 +1,5 @@
 import Ember from 'ember';
+import { module, test } from 'qunit';
 import startApp from '../../helpers/start-app';
 import Person from '../../../models/person';
 import Group from '../../../models/group';
@@ -13,7 +14,7 @@ var passedUrl, passedVerb, passedHash;
 var run = Ember.run;
 
 module('Acceptance: AdaptersDjangoTastypieAdapter', {
-  setup: function() {
+  beforeEach: function() {
     application = startApp({'namespace': 'api/v1'});
 
     store = application.__container__.lookup('store:main');
@@ -21,7 +22,7 @@ module('Acceptance: AdaptersDjangoTastypieAdapter', {
 
     passedUrl = passedVerb = passedHash = null;
   },
-  teardown: function() {
+  afterEach: function() {
     Ember.run(application, 'destroy');
   }
 });

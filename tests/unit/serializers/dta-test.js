@@ -19,26 +19,29 @@ moduleFor('serializer:application', 'DjangoTastypieSerializer', {
   needs: ['model:super-villain', 'model:home-planet', 'model:evil-minion',
       'model:yellow-minion', 'model:doomsday-device',
       'model:course', 'model:unit', 'model:comment']
-}, function(container, context, defaultSubject) {
-  if (DS._setupContainer) {
-    DS._setupContainer(container);
-  } else {
-    container.register('store:main', DS.Store);
-  }
+}, {
+    setup: function() {
+        var container = this.container;
+        var context = this.context;
+        if (DS._setupContainer) {
+            DS._setupContainer(container);
+        } else {
+            container.register('store:main', DS.Store);
+        }
 
-  var adapterFactory = container.lookupFactory('adapter:application');
-  if (!adapterFactory) {
-    container.register('adapter:application', DjangoTastypieAdapter);
-  }
+        var adapterFactory = container.lookupFactory('adapter:application');
+        if (!adapterFactory) {
+            container.register('adapter:application', DjangoTastypieAdapter);
+        }
 
-  context.__setup_properties__.store = function () {
-    return container.lookup('store:main');
-  };
+        context.__setup_properties__.store = function () {
+            return container.lookup('store:main');
+        };
 
-  context.__setup_properties__.container = function() {
-    return container;
-  };
-
+        context.__setup_properties__.container = function () {
+            return container;
+        };
+    }
 });
 
 /*

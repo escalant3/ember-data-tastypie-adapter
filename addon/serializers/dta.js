@@ -7,7 +7,7 @@ export default DS.RESTSerializer.extend({
     return Ember.String.decamelize(attr);
   },
 
-  keyForRelationship: function(key, type) {
+  keyForRelationship: function(key) {
     return Ember.String.decamelize(key);
   },
 
@@ -174,7 +174,6 @@ export default DS.RESTSerializer.extend({
   },
 
   extractEmbeddedFromHasMany: function(store, key, relationship, payload, config) {
-    var self = this;
     var serializer = store.serializerFor(relationship.type);
 
     key = config.key ? config.key : this.keyForAttribute(key);
