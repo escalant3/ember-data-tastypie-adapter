@@ -244,28 +244,23 @@ export default DS.RESTSerializer.extend({
     var key = relationship.key;
     key = this.keyForRelationship ? this.keyForRelationship(key, "belongsTo") : key;
 
-    json[key] = this.relationshipToResourceUri(relationship, Ember.get(record, relationship.key));
+    json[key] = this.relationshipToResourceUri(relationship, record.belongsTo(relationship.key));
   },
 
-  serializeHasMany: function(record, json, relationship) {
+  serializeHasMany: function(snapshot, json, relationship) {
     var key = relationship.key;
     key = this.keyForRelationship ? this.keyForRelationship(key, "hasMany") : key;
 
-    var relationshipType = record.constructor.determineRelationshipType(relationship);
+    var relationshipType = snapshot.type.determineRelationshipType(relationship);
 
     if (relationshipType === 'manyToNone' || relationshipType === 'manyToMany' || relationshipType === 'manyToOne') {
       if (this.isEmbedded(relationship)) {
-        json[key] = Ember.get(record, relationship.key).map(function (relation) {
-          var data = relation.serialize();
-
-          // Embedded objects need the ID for update operations
-          var id = relation.get('id');
-          if (!!id) { data.id = id; }
-
+        json[key] = snapshot.hasMany(relationship.key).map(function (embeddedSnapshot) {
+          var data = embeddedSnapshot.record.serialize({ includeId: true });
           return data;
         });
       } else {
-        var relationData = Ember.get(record, relationship.key); 
+        var relationData = snapshot.hasMany(relationship.key);
         
         // We can't deal with promises here. We need actual data
         if (relationData instanceof DS.PromiseArray) {
@@ -276,7 +271,7 @@ export default DS.RESTSerializer.extend({
           } else {
             // If the property hasn't been fulfilled then it hasn't changed.
             // Fall back to the internal data. It contains enough for relationshipToResourceUri.
-            relationData = Ember.get(record, relationship.key).mapBy('id').map(function(_id) {
+            relationData = snapshot.hasMany(relationship.key).mapBy('id').map(function(_id) {
               return {id: _id};
             }) || [];
           }

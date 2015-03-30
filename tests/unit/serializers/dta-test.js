@@ -120,7 +120,7 @@ test("serialize", function() {
     league = store.createRecord('home-planet', { name: "Villain League", id: "123" });
     tom = store.createRecord('super-villain', { firstName: "Tom", lastName: "Dale", homePlanet: league });
 
-    json = serializer.serialize(tom);
+    json = serializer.serialize(tom._createSnapshot());
   });
 
   deepEqual(json, {
@@ -138,7 +138,7 @@ test("serializeIntoHash", function() {
   run(function() {
     league = store.createRecord('home-planet', { name: "Umber", id: "123" });
 
-    serializer.serializeIntoHash(json, store.modelFor('home-planet'), league);
+    serializer.serializeIntoHash(json, store.modelFor('home-planet'), league._createSnapshot());
   });
 
   deepEqual(json, {
@@ -667,7 +667,7 @@ test("serialize polymorphic", function() {
     tom = store.createRecord('yellow-minion',   {name: "Alex", id: "124"});
     ray = store.createRecord('doomsday-device', {evilMinion: tom, name: "DeathRay"});
 
-    json = serializer.serialize(ray);
+    json = serializer.serialize(ray._createSnapshot());
   });
   deepEqual(json, {
     name:  "DeathRay",
@@ -703,7 +703,7 @@ test("serialize with embedded objects", function() {
   var serializer = container.lookup("serializer:home-planet");
   var json;
   run(function() {
-    json = serializer.serialize(league);
+    json = serializer.serialize(league._createSnapshot());
   });
 
   deepEqual(json, {
