@@ -57,14 +57,13 @@ export default DS.RESTAdapter.extend({
                      'GET');
   },
 
-  _stripIDFromURL: function(store, record) {
-      var type = store.modelFor(record);
-      var url = this.buildURL(type.typeKey, record.get('id'), record);
+  _stripIDFromURL: function(store, snapshot) {
+      var url = this.buildURL(snapshot.typeKey, snapshot.id, snapshot);
 
       var expandedURL = url.split('/');
       //Case when the url is of the format ...something/:id
       var lastSegment = expandedURL[ expandedURL.length - 2 ];
-      var id = record.get('id');
+      var id = snapshot.id;
       if (lastSegment === id) {
         expandedURL[expandedURL.length - 2] = "";
       } else if(endsWith(lastSegment, '?id=' + id)) {
@@ -94,18 +93,18 @@ export default DS.RESTAdapter.extend({
       and `/posts/2/comments/3`
       @method groupRecordsForFindMany
       @param {DS.Store} store
-      @param {Array} records
+      @param {Array} snapshots
       @return {Array}  an array of arrays of records, each of which is to be
                         loaded separately by `findMany`.
     */
-    groupRecordsForFindMany: function (store, records) {
+    groupRecordsForFindMany: function (store, snapshots) {
       var groups = Ember.MapWithDefault.create({defaultValue: function(){return [];}});
       var adapter = this;
       var maxUrlLength = this.maxUrlLength;
 
-      forEach.call(records, function(record){
-        var baseUrl = adapter._stripIDFromURL(store, record);
-        groups.get(baseUrl).push(record);
+      forEach.call(snapshots, function(snapshot){
+        var baseUrl = adapter._stripIDFromURL(store, snapshot);
+        groups.get(baseUrl).push(snapshot);
       });
 
       function splitGroupToFitInUrl(group, maxUrlLength, paramNameLength) {
@@ -113,8 +112,8 @@ export default DS.RESTAdapter.extend({
         var idsSize = 0;
         var splitGroups = [[]];
 
-        forEach.call(group, function(record) {
-          var additionalLength = encodeURIComponent(record.get('id')).length + paramNameLength;
+        forEach.call(group, function(snapshot) {
+          var additionalLength = encodeURIComponent(snapshot.id).length + paramNameLength;
           if (baseUrl.length + idsSize + additionalLength >= maxUrlLength) {
             idsSize = 0;
             splitGroups.push([]);
@@ -123,7 +122,7 @@ export default DS.RESTAdapter.extend({
           idsSize += additionalLength;
 
           var lastGroupIndex = splitGroups.length - 1;
-          splitGroups[lastGroupIndex].push(record);
+          splitGroups[lastGroupIndex].push(snapshot);
         });
 
         return splitGroups;
