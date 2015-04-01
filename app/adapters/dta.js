@@ -1,11 +1,13 @@
+import Ember from 'ember';
 import DjangoTastypieAdapter from 'ember-data-tastypie-adapter/adapters/dta';
 import ENV from '../config/environment';
 
 export default DjangoTastypieAdapter.extend({
-  serverDomain: function() {
+  serverDomain: Ember.computed(function() {
     return ENV.APP.API_HOST;
-  }.property(),
-  namespace: function() {
+  }),
+
+  namespace: Ember.computed(function() {
     return ENV.APP.API_NAMESPACE;
-  }.property()
+  })
 });
