@@ -552,16 +552,22 @@ test("adding hasMany relationships parses the Resource URI (default key)", funct
 
 test("async hasMany always returns a promise", function(assert) {
   var id = $.mockjax({
-    url: '/api/v1/comment/*/',
+    url: '/api/v1/comment/*',
     type: 'GET',
     status: 200,
-    responseText: {
-      objects: [
-        { id: 1, text: "Rein Heinrichs", resource_uri: '/api/v1/comment/1/' },
-        { id: 2, text: "Tom Dale", resource_uri: '/api/v1/comment/2/' }
-      ]
+    response: function(settings) {
+
+      this.responseText = {
+        objects: [
+          { id: 1, text: "Rein Heinrichs", resource_uri: '/api/v1/comment/1/' },
+          { id: 2, text: "Tom Dale", resource_uri: '/api/v1/comment/2/' }
+        ]
+      };
+
+      $.mockjax.clear(id);
     }
   });
+
   Post.reopen({
     comments: DS.hasMany('comment', { async: true })
   });
@@ -579,8 +585,6 @@ test("async hasMany always returns a promise", function(assert) {
     store.find('post', 1).then(function(post) {
       assert.ok(post.get('comments') instanceof DS.PromiseArray, "comments is a promise");
 
-      application.registry.unregister('adapter:comment');
-      $.mockjax.clear(id);
       start();
     });
   });
