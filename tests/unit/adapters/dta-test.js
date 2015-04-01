@@ -9,15 +9,15 @@ moduleFor('adapter:application', 'DjangoTastypieAdapter', {
   }
 });
 
-test('buildURL - should not use plurals', function() {
+test('buildURL - should not use plurals', function(assert) {
   var adapter = this.subject();
-  equal(adapter.buildURL('person', 1), "/api/v1/person/1/");
+  assert.equal(adapter.buildURL('person', 1), "/api/v1/person/1/");
 });
 
-test("if you specify a server domain then it is prepended onto all URLs", function() {
+test("if you specify a server domain then it is prepended onto all URLs", function(assert) {
   var adapter = this.subject();
   adapter.set('serverDomain', 'http://localhost:8000');
-  equal(adapter.buildURL('person', 1), "http://localhost:8000/api/v1/person/1/");
+  assert.equal(adapter.buildURL('person', 1), "http://localhost:8000/api/v1/person/1/");
 });
 
 /* COMMENTED IN EMBER DATA

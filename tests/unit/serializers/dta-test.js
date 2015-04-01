@@ -110,7 +110,7 @@ module("integration/django_tastypie_adapter - DjangoTastypieSerializer", {
 });
 */
 
-test("serialize", function() {
+test("serialize", function(assert) {
   var serializer = this.subject();
   var store = this.container.lookup('store:main');
 
@@ -123,7 +123,7 @@ test("serialize", function() {
     json = serializer.serialize(tom._createSnapshot());
   });
 
-  deepEqual(json, {
+  assert.deepEqual(json, {
     first_name: "Tom",
     last_name: "Dale",
     home_planet: '/api/v1/homePlanet/'+get(league, "id")+'/',
@@ -131,7 +131,7 @@ test("serialize", function() {
   });
 });
 
-test("serializeIntoHash", function() {
+test("serializeIntoHash", function(assert) {
   var serializer = this.subject();
   var store = this.container.lookup('store:main');
   var league, json = {};
@@ -141,13 +141,13 @@ test("serializeIntoHash", function() {
     serializer.serializeIntoHash(json, store.modelFor('home-planet'), league._createSnapshot());
   });
 
-  deepEqual(json, {
+  assert.deepEqual(json, {
     name: "Umber",
     villains: []
   });
 });
 
-test("normalize", function() {
+test("normalize", function(assert) {
   var store = this.container.lookup('store:main');
   var serializer = this.subject();
   var superVillain_hash = {first_name: "Tom", last_name: "Dale", home_planet: "/api/v1/homePlanet/123/", evil_minions: ['/api/v1/evilMinion/1/', '/api/v1/evilMinion/2/'], resource_uri: '/api/v1/superVillain/1/'};
@@ -157,7 +157,7 @@ test("normalize", function() {
     json = serializer.normalize(store.modelFor('super-villain'), superVillain_hash, "super-villain");
   });
 
-  deepEqual(json, {
+  assert.deepEqual(json, {
     id: "1",
     firstName: "Tom",
     lastName: "Dale",
@@ -166,7 +166,7 @@ test("normalize", function() {
   });
 });
 
-test("extractSingle", function() {
+test("extractSingle", function(assert) {
   var serializer = this.subject();
   var container = this.container;
   var store = this.container.lookup('store:main');
@@ -182,14 +182,14 @@ test("extractSingle", function() {
     json = serializer.extractSingle(store, store.modelFor('home-planet'), json_hash);
   });
 
-  deepEqual(json, {
+  assert.deepEqual(json, {
     "id": "1",
     "name": "Umber",
     "villains": ["1"]
   });
 });
 
-test("extractSingle with embedded objects", function() {
+test("extractSingle with embedded objects", function(assert) {
   var container = this.container;
   var store = this.container.lookup('store:main');
   container.register('adapter:super-villain', DjangoTastypieAdapter);
@@ -217,18 +217,18 @@ test("extractSingle with embedded objects", function() {
     json = serializer.extractSingle(store, store.modelFor('home-planet'), json_hash);
   });
 
-  deepEqual(json, {
+  assert.deepEqual(json, {
     id: "1",
     name: "Umber",
     villains: ["1"]
   });
 
   run(store, 'find', "super-villain", 1).then(function(minion) {
-    equal(minion.get('firstName'), "Tom");
+    assert.equal(minion.get('firstName'), "Tom");
   });
 });
 
-test("extractSingle with embedded objects inside embedded objects", function() {
+test("extractSingle with embedded objects inside embedded objects", function(assert) {
   var container = this.container;
   var store = this.container.lookup('store:main');
 
@@ -236,11 +236,11 @@ test("extractSingle with embedded objects inside embedded objects", function() {
     homePlanet:    DS.belongsTo("home-planet"),
     evilMinions:   DS.hasMany("evil-minion")
   });
-  
+
   HomePlanet.reopen({
     villains:      DS.hasMany('super-villain')
   });
-  
+
   container.register('adapter:super-villain', DjangoTastypieAdapter);
   container.register('serializer:home-planet', DjangoTastypieSerializer.extend({
     attrs: {
@@ -276,24 +276,24 @@ test("extractSingle with embedded objects inside embedded objects", function() {
     json = serializer.extractSingle(store, store.modelFor('home-planet'), json_hash);
   });
 
-  deepEqual(json, {
+  assert.deepEqual(json, {
     id: "1",
     name: "Umber",
     villains: ["1"]
   });
   run(function() {
     store.find("super-villain", 1).then(function(villain) {
-      equal(villain.get('firstName'), "Tom");
-      equal(villain.get('evilMinions.length'), 1, "Should load the embedded child");
-      equal(villain.get('evilMinions.firstObject.name'), "Alex", "Should load the embedded child");
+      assert.equal(villain.get('firstName'), "Tom");
+      assert.equal(villain.get('evilMinions.length'), 1, "Should load the embedded child");
+      assert.equal(villain.get('evilMinions.firstObject.name'), "Alex", "Should load the embedded child");
     });
     store.find("evil-minion", 1).then(function(minion) {
-      equal(minion.get('name'), "Alex");
+      assert.equal(minion.get('name'), "Alex");
     });
   });
 });
 
-test("extractSingle with embedded objects of same type", function() {
+test("extractSingle with embedded objects of same type", function(assert) {
   var container = this.container;
   var store = this.container.lookup('store:main');
   container.register('adapter:comment', DjangoTastypieAdapter);
@@ -328,17 +328,17 @@ test("extractSingle with embedded objects of same type", function() {
     json = serializer.extractSingle(store, store.modelFor('comment'), json_hash);
   });
 
-  deepEqual(json, {
+  assert.deepEqual(json, {
     id: "1",
     body: "Hello",
     root: true,
     children: ["2", "3"]
   }, "Primary record was correct");
-  equal(store.recordForId("comment", "2").get("body"), "World", "Secondary records found in the store");
-  equal(store.recordForId("comment", "3").get("body"), "Foo", "Secondary records found in the store");
+  assert.equal(store.recordForId("comment", "2").get("body"), "World", "Secondary records found in the store");
+  assert.equal(store.recordForId("comment", "3").get("body"), "Foo", "Secondary records found in the store");
 });
 
-test("extractSingle with embedded objects inside embedded objects of same type", function() {
+test("extractSingle with embedded objects inside embedded objects of same type", function(assert) {
   var container = this.container;
   var store = this.container.lookup('store:main');
   container.register('adapter:comment', DjangoTastypieAdapter);
@@ -378,20 +378,20 @@ test("extractSingle with embedded objects inside embedded objects of same type",
     json = serializer.extractSingle(store, store.modelFor('comment'), json_hash);
   });
 
-  deepEqual(json, {
+  assert.deepEqual(json, {
     id: "1",
     body: "Hello",
     root: true,
     children: ["2", "3"]
   }, "Primary record was correct");
-  equal(store.recordForId("comment", "2").get("body"), "World", "Secondary records found in the store");
-  equal(store.recordForId("comment", "3").get("body"), "Foo", "Secondary records found in the store");
-  equal(store.recordForId("comment", "4").get("body"), "Another", "Secondary records found in the store");
-  equal(store.recordForId("comment", "2").get("children.length"), 1, "Should have one embedded record");
-  equal(store.recordForId("comment", "2").get("children.firstObject.body"), "Another", "Should have one embedded record");
+  assert.equal(store.recordForId("comment", "2").get("body"), "World", "Secondary records found in the store");
+  assert.equal(store.recordForId("comment", "3").get("body"), "Foo", "Secondary records found in the store");
+  assert.equal(store.recordForId("comment", "4").get("body"), "Another", "Secondary records found in the store");
+  assert.equal(store.recordForId("comment", "2").get("children.length"), 1, "Should have one embedded record");
+  assert.equal(store.recordForId("comment", "2").get("children.firstObject.body"), "Another", "Should have one embedded record");
 });
 
-test("extractSingle with embedded objects of same type, but from separate attributes", function() {
+test("extractSingle with embedded objects of same type, but from separate attributes", function(assert) {
   var container = this.container;
   var store = this.container.lookup('store:main');
   container.register('adapter:course', DjangoTastypieAdapter);
@@ -432,20 +432,20 @@ test("extractSingle with embedded objects of same type, but from separate attrib
     json = serializer.extractSingle(store, store.modelFor('course'), json_hash);
   });
 
-  deepEqual(json, {
+  assert.deepEqual(json, {
     id: "1",
     name: "Course 1",
     prerequisiteUnits: ["1", "3"],
     units: ["2", "4"]
   }, "Primary array was correct");
 
-  equal(store.recordForId("unit", "1").get("name"), "Unit 1", "Secondary records found in the store");
-  equal(store.recordForId("unit", "2").get("name"), "Unit 2", "Secondary records found in the store");
-  equal(store.recordForId("unit", "3").get("name"), "Unit 3", "Secondary records found in the store");
-  equal(store.recordForId("unit", "4").get("name"), "Unit 4", "Secondary records found in the store");
+  assert.equal(store.recordForId("unit", "1").get("name"), "Unit 1", "Secondary records found in the store");
+  assert.equal(store.recordForId("unit", "2").get("name"), "Unit 2", "Secondary records found in the store");
+  assert.equal(store.recordForId("unit", "3").get("name"), "Unit 3", "Secondary records found in the store");
+  assert.equal(store.recordForId("unit", "4").get("name"), "Unit 4", "Secondary records found in the store");
 });
 
-test("extractArray", function() {
+test("extractArray", function(assert) {
   var container = this.container;
   var store = this.container.lookup('store:main');
   HomePlanet.reopen({
@@ -474,14 +474,14 @@ test("extractArray", function() {
     array = serializer.extractArray(store, store.modelFor('home-planet'), json_hash);
   });
 
-  deepEqual(array, [{
+  assert.deepEqual(array, [{
     "id": "1",
     "name": "Umber",
     "villains": ["1"]
   }]);
 });
 
-test("extractArray with embedded objects", function() {
+test("extractArray with embedded objects", function(assert) {
   var container = this.container;
   var store = this.container.lookup('store:main');
   container.register('adapter:super-villain', DjangoTastypieAdapter);
@@ -512,7 +512,7 @@ test("extractArray with embedded objects", function() {
     array = serializer.extractArray(store, store.modelFor('home-planet'), json_hash);
   });
 
-  deepEqual(array, [{
+  assert.deepEqual(array, [{
     id: "1",
     name: "Umber",
     villains: ["1"]
@@ -520,12 +520,12 @@ test("extractArray with embedded objects", function() {
 
   run(function() {
     store.find("super-villain", 1).then(function(minion){
-      equal(minion.get('firstName'), "Tom");
+      assert.equal(minion.get('firstName'), "Tom");
     });
   });
 });
 
-test("extractArray with embedded objects of same type as primary type", function() {
+test("extractArray with embedded objects of same type as primary type", function(assert) {
   var container = this.container;
   var store = this.container.lookup('store:main');
   container.register('adapter:comment', DjangoTastypieAdapter);
@@ -563,18 +563,18 @@ test("extractArray with embedded objects of same type as primary type", function
     array = serializer.extractArray(store, store.modelFor('comment'), json_hash);
   });
 
-  deepEqual(array, [{
+  assert.deepEqual(array, [{
     id: "1",
     body: "Hello",
     root: true,
     children: ["2", "3"]
   }], "Primary array is correct");
 
-  equal(store.recordForId("comment", "2").get("body"), "World", "Secondary record found in the store");
-  equal(store.recordForId("comment", "3").get("body"), "Foo", "Secondary record found in the store");
+  assert.equal(store.recordForId("comment", "2").get("body"), "World", "Secondary record found in the store");
+  assert.equal(store.recordForId("comment", "3").get("body"), "Foo", "Secondary record found in the store");
 });
 
-test("extractArray with embedded objects of same type, but from separate attributes", function() {
+test("extractArray with embedded objects of same type, but from separate attributes", function(assert) {
   var container = this.container;
   var store = this.container.lookup('store:main');
   container.register('adapter:course', DjangoTastypieAdapter);
@@ -639,7 +639,7 @@ test("extractArray with embedded objects of same type, but from separate attribu
     json = serializer.extractArray(store, store.modelFor('course'), json_hash);
   });
 
-  deepEqual(json, [{
+  assert.deepEqual(json, [{
     id: "1",
     name: "Course 1",
     prerequisiteUnits: ["1", "3"],
@@ -651,15 +651,15 @@ test("extractArray with embedded objects of same type, but from separate attribu
     units: ["5", "6"]
   }], "Primary array was correct");
 
-  equal(store.recordForId("unit", "1").get("name"), "Unit 1", "Secondary records found in the store");
-  equal(store.recordForId("unit", "2").get("name"), "Unit 2", "Secondary records found in the store");
-  equal(store.recordForId("unit", "3").get("name"), "Unit 3", "Secondary records found in the store");
-  equal(store.recordForId("unit", "4").get("name"), "Unit 4", "Secondary records found in the store");
-  equal(store.recordForId("unit", "5").get("name"), "Unit 5", "Secondary records found in the store");
-  equal(store.recordForId("unit", "6").get("name"), "Unit 6", "Secondary records found in the store");
+  assert.equal(store.recordForId("unit", "1").get("name"), "Unit 1", "Secondary records found in the store");
+  assert.equal(store.recordForId("unit", "2").get("name"), "Unit 2", "Secondary records found in the store");
+  assert.equal(store.recordForId("unit", "3").get("name"), "Unit 3", "Secondary records found in the store");
+  assert.equal(store.recordForId("unit", "4").get("name"), "Unit 4", "Secondary records found in the store");
+  assert.equal(store.recordForId("unit", "5").get("name"), "Unit 5", "Secondary records found in the store");
+  assert.equal(store.recordForId("unit", "6").get("name"), "Unit 6", "Secondary records found in the store");
 });
 
-test("serialize polymorphic", function() {
+test("serialize polymorphic", function(assert) {
   var store = this.container.lookup('store:main');
   var serializer = this.subject();
   var tom, ray, json;
@@ -669,14 +669,14 @@ test("serialize polymorphic", function() {
 
     json = serializer.serialize(ray._createSnapshot());
   });
-  deepEqual(json, {
+  assert.deepEqual(json, {
     name:  "DeathRay",
     evil_minionType: "yellowMinion",
     evil_minion: "/api/v1/evilMinion/124/"
   });
 });
 
-test("serialize with embedded objects", function() {
+test("serialize with embedded objects", function(assert) {
   var container = this.container;
   var store = this.container.lookup('store:main');
 
@@ -684,7 +684,7 @@ test("serialize with embedded objects", function() {
     homePlanet:    DS.belongsTo("home-planet"),
     evilMinions:   DS.hasMany("evil-minion", { async: true })
   });
-  
+
   HomePlanet.reopen({
     villains:      DS.hasMany('super-villain', { async: false })
   });
@@ -706,7 +706,7 @@ test("serialize with embedded objects", function() {
     json = serializer.serialize(league._createSnapshot());
   });
 
-  deepEqual(json, {
+  assert.deepEqual(json, {
     name: "Villain League",
     villains: [{
       id: tom.get("id"),
