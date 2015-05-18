@@ -19,13 +19,8 @@ moduleFor('serializer:application', 'DjangoTastypieSerializer', {
   needs: ['model:super-villain', 'model:home-planet', 'model:evil-minion',
       'model:yellow-minion', 'model:doomsday-device',
       'model:course', 'model:unit', 'model:comment', 'model:post'],
-  setup: function() {
+  beforeEach: function() {
       var container = this.container;
-      if (DS._setupContainer) {
-          DS._setupContainer(container);
-      } else {
-          container.register('store:main', DS.Store);
-      }
 
       var adapterFactory = container.lookupFactory('adapter:application');
       if (!adapterFactory) {

@@ -20,12 +20,12 @@ export default DS.RESTSerializer.extend({
     var specificExtract = "extract" + requestType.charAt(0).toUpperCase() + requestType.substr(1);
     return this[specificExtract](store, type, payload, id, requestType);
   },
-  
+
   /**
     `extractMeta` is used to deserialize any meta information in the
     adapter payload. By default Ember Data expects meta information to
     be located on the `meta` property of the payload object.
-  
+
     The actual nextUrl is being stored. The offset must be extracted from
     the string to do a new call.
     When there are remaining objects to be returned, Tastypie returns a
@@ -33,7 +33,7 @@ export default DS.RESTSerializer.extend({
     more objects to be returned, the `next` paramater value will be null.
     Instead of calculating the next `offset` each time, we store the nextUrl
     from which the offset will be extrated for the next request
-    
+
     @method extractMeta
     @param {DS.Store} store
     @param {subclass of DS.Model} type
@@ -42,11 +42,11 @@ export default DS.RESTSerializer.extend({
   extractMeta: function(store, type, payload) {
     if (payload && payload.meta) {
       var adapter = store.adapterFor(type);
-              
+
       if (adapter && adapter.get('since') !== null && payload.meta[adapter.get('since')] !== undefined) {
         payload.meta.since = payload.meta[adapter.get('since')];
       }
-      
+
       store.setMetadataFor(type, payload.meta);
       delete payload.meta;
     }
@@ -148,7 +148,7 @@ export default DS.RESTSerializer.extend({
     // Consider the resource as embedded if the relationship is not async
     return !(relationship.options.async ? relationship.options.async : false);
   },
-  
+
   isResourceUri: function(adapter, payload) {
     if (typeof payload !== 'string') {
       return false;
@@ -208,12 +208,12 @@ export default DS.RESTSerializer.extend({
     }
 
     var data = payload[key];
-    
+
     // Don't try to process data if it's not data!
     if (serializer.isResourceUri(store.adapterFor(relationship.type), data)) {
       return;
     }
-    
+
     var embeddedType = store.modelFor(relationship.type);
 
     serializer.extractEmbeddedFromPayload(store, embeddedType, data);
@@ -255,13 +255,17 @@ export default DS.RESTSerializer.extend({
 
     if (relationshipType === 'manyToNone' || relationshipType === 'manyToMany' || relationshipType === 'manyToOne') {
       if (this.isEmbedded(relationship)) {
-        json[key] = snapshot.hasMany(relationship.key).map(function (embeddedSnapshot) {
-          var data = embeddedSnapshot.record.serialize({ includeId: true });
-          return data;
-        });
+        if (snapshot.hasMany(relationship.key)) {
+          json[key] = snapshot.hasMany(relationship.key).map(function (embeddedSnapshot) {
+            var data = embeddedSnapshot.record.serialize({includeId: true});
+            return data;
+          });
+        } else {
+          json[key] = [];
+        }
       } else {
         var relationData = snapshot.hasMany(relationship.key);
-        
+
         // We can't deal with promises here. We need actual data
         if (relationData instanceof DS.PromiseArray) {
           // We need the content of the promise. Make sure it is fulfilled
@@ -276,11 +280,11 @@ export default DS.RESTSerializer.extend({
             }) || [];
           }
         }
-        
+
         json[key] = relationData.map(function (next){
           return this.relationshipToResourceUri(relationship, next);
         }, this);
-        
+
       }
     }
   }

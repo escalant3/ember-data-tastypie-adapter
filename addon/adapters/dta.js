@@ -35,8 +35,8 @@ export default DS.RESTAdapter.extend({
   */
   defaultSerializer: '-django-tastypie',
 
-  buildURL: function(type, id, record) {
-    var url = this._super(type, id, record);
+  buildURL: function(modelName, id, snapshot, requestType) {
+    var url = this._super(modelName, id, snapshot, requestType);
     var serverDomain = this.get('serverDomain');
 
     // Add the trailing slash to avoid setting requirement in Django.settings
@@ -144,7 +144,7 @@ export default DS.RESTAdapter.extend({
   /**
     sinceToken is defined by since property, which by default points to 'next' field in meta.
     We process this token to get the correct offset for loading more data.
-    
+
   */
   findAll: function(store, type, sinceToken) {
     var query;
