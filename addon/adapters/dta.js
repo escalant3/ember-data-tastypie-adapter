@@ -1,8 +1,6 @@
 import DS from 'ember-data';
 import Ember from 'ember';
 
-var forEach = Ember.ArrayPolyfills.forEach;
-
 export default DS.RESTAdapter.extend({
   /**
     Set this parameter if you are planning to do cross-site
@@ -97,7 +95,7 @@ export default DS.RESTAdapter.extend({
       var adapter = this;
       var maxURLLength = this.maxURLLength;
 
-      forEach.call(snapshots, function(snapshot){
+      snapshots.forEach((snapshot) => {
         var baseUrl = adapter._stripIDFromURL(store, snapshot);
         groups.get(baseUrl).push(snapshot);
       });
@@ -107,7 +105,7 @@ export default DS.RESTAdapter.extend({
         var idsSize = 0;
         var splitGroups = [[]];
 
-        forEach.call(group, function(snapshot) {
+        group.forEach((snapshot) => {
           var additionalLength = encodeURIComponent(snapshot.id).length + paramNameLength;
           if (baseUrl.length + idsSize + additionalLength >= maxURLLength) {
             idsSize = 0;
@@ -124,11 +122,11 @@ export default DS.RESTAdapter.extend({
       }
 
       var groupsArray = [];
-      groups.forEach(function(group){
+      groups.forEach((group) => {
         var paramNameLength = '&ids%5B%5D='.length;
         var splitGroups = splitGroupToFitInUrl(group, maxURLLength, paramNameLength);
 
-        forEach.call(splitGroups, function(splitGroup) {
+        splitGroups.forEach((splitGroup) => {
           groupsArray.push(splitGroup);
         });
       });
