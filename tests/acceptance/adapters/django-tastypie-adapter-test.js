@@ -18,7 +18,7 @@ module('Acceptance: AdaptersDjangoTastypieAdapter', {
   beforeEach: function() {
     application = startApp({'namespace': 'api/v1'});
 
-    store = application.__container__.lookup('store:main');
+    store = application.__container__.lookup('service:store');
     adapter = application.__container__.lookup('adapter:application');
 
     passedUrl = passedVerb = passedHash = null;

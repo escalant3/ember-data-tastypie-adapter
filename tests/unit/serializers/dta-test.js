@@ -107,7 +107,7 @@ module("integration/django_tastypie_adapter - DjangoTastypieSerializer", {
 
 test("serialize", function(assert) {
   var serializer = this.subject();
-  var store = this.container.lookup('store:main');
+  var store = this.container.lookup('service:store');
 
   var league, tom, json;
 
@@ -128,7 +128,7 @@ test("serialize", function(assert) {
 
 test("serializeIntoHash", function(assert) {
   var serializer = this.subject();
-  var store = this.container.lookup('store:main');
+  var store = this.container.lookup('service:store');
   var league, json = {};
   run(function() {
     league = store.createRecord('home-planet', { name: "Umber", id: "123" });
@@ -143,7 +143,7 @@ test("serializeIntoHash", function(assert) {
 });
 
 test("normalize", function(assert) {
-  var store = this.container.lookup('store:main');
+  var store = this.container.lookup('service:store');
   var serializer = this.subject();
   var superVillain_hash = {first_name: "Tom", last_name: "Dale", home_planet: "/api/v1/homePlanet/123/", evil_minions: ['/api/v1/evilMinion/1/', '/api/v1/evilMinion/2/'], resource_uri: '/api/v1/superVillain/1/'};
 
@@ -164,7 +164,7 @@ test("normalize", function(assert) {
 test("extractSingle", function(assert) {
   var serializer = this.subject();
   var container = this.container;
-  var store = this.container.lookup('store:main');
+  var store = this.container.lookup('service:store');
   container.register('adapter:super-villain', DjangoTastypieAdapter);
 
   var json_hash = {
@@ -186,7 +186,7 @@ test("extractSingle", function(assert) {
 
 test("extractSingle with embedded objects", function(assert) {
   var container = this.container;
-  var store = this.container.lookup('store:main');
+  var store = this.container.lookup('service:store');
   container.register('adapter:super-villain', DjangoTastypieAdapter);
   container.register('serializer:home-planet', DjangoTastypieSerializer.extend({
     attrs: {
@@ -202,6 +202,7 @@ test("extractSingle with embedded objects", function(assert) {
       id: "1",
       first_name: "Tom",
       last_name: "Dale",
+      evil_minions: [],
       resource_uri: "/api/v1/super_villain/1/"
     }],
     resource_uri: "/api/v1/home_planet/1/"
@@ -225,7 +226,7 @@ test("extractSingle with embedded objects", function(assert) {
 
 test("extractSingle with embedded objects inside embedded objects", function(assert) {
   var container = this.container;
-  var store = this.container.lookup('store:main');
+  var store = this.container.lookup('service:store');
 
   SuperVillain.reopen({
     homePlanet:    DS.belongsTo("home-planet"),
@@ -290,7 +291,7 @@ test("extractSingle with embedded objects inside embedded objects", function(ass
 
 test("extractSingle with embedded objects of same type", function(assert) {
   var container = this.container;
-  var store = this.container.lookup('store:main');
+  var store = this.container.lookup('service:store');
   container.register('adapter:comment', DjangoTastypieAdapter);
   container.register('serializer:comment', DjangoTastypieSerializer.extend({
     attrs: {
@@ -335,7 +336,7 @@ test("extractSingle with embedded objects of same type", function(assert) {
 
 test("extractSingle with embedded objects inside embedded objects of same type", function(assert) {
   var container = this.container;
-  var store = this.container.lookup('store:main');
+  var store = this.container.lookup('service:store');
   container.register('adapter:comment', DjangoTastypieAdapter);
   container.register('serializer:comment', DjangoTastypieSerializer.extend({
     attrs: {
@@ -388,7 +389,7 @@ test("extractSingle with embedded objects inside embedded objects of same type",
 
 test("extractSingle with embedded objects of same type, but from separate attributes", function(assert) {
   var container = this.container;
-  var store = this.container.lookup('store:main');
+  var store = this.container.lookup('service:store');
   container.register('adapter:course', DjangoTastypieAdapter);
   container.register('serializer:course', DjangoTastypieSerializer.extend({
     attrs: {
@@ -442,7 +443,7 @@ test("extractSingle with embedded objects of same type, but from separate attrib
 
 test("extractArray", function(assert) {
   var container = this.container;
-  var store = this.container.lookup('store:main');
+  var store = this.container.lookup('service:store');
   HomePlanet.reopen({
     villains: DS.hasMany('super-villain', {async: true})
   });
@@ -478,7 +479,7 @@ test("extractArray", function(assert) {
 
 test("extractArray with embedded objects", function(assert) {
   var container = this.container;
-  var store = this.container.lookup('store:main');
+  var store = this.container.lookup('service:store');
   container.register('adapter:super-villain', DjangoTastypieAdapter);
   container.register('serializer:home-planet', DjangoTastypieSerializer.extend({
     attrs: {
@@ -496,6 +497,7 @@ test("extractArray with embedded objects", function(assert) {
         id: "1",
         first_name: "Tom",
         last_name: "Dale",
+        evil_minions: [],
         resource_uri: '/api/v1/superVillain/1/'
       }],
       resource_uri: '/api/v1/homePlanet/1/'
@@ -522,7 +524,7 @@ test("extractArray with embedded objects", function(assert) {
 
 test("extractArray with embedded objects of same type as primary type", function(assert) {
   var container = this.container;
-  var store = this.container.lookup('store:main');
+  var store = this.container.lookup('service:store');
   container.register('adapter:comment', DjangoTastypieAdapter);
   container.register('serializer:comment', DjangoTastypieSerializer.extend({
     attrs: {
@@ -571,7 +573,7 @@ test("extractArray with embedded objects of same type as primary type", function
 
 test("extractArray with embedded objects of same type, but from separate attributes", function(assert) {
   var container = this.container;
-  var store = this.container.lookup('store:main');
+  var store = this.container.lookup('service:store');
   container.register('adapter:course', DjangoTastypieAdapter);
   container.register('serializer:course', DjangoTastypieSerializer.extend({
     attrs: {
@@ -655,7 +657,7 @@ test("extractArray with embedded objects of same type, but from separate attribu
 });
 
 test("serialize polymorphic", function(assert) {
-  var store = this.container.lookup('store:main');
+  var store = this.container.lookup('service:store');
   var serializer = this.subject();
   var tom, ray, json;
   run(function() {
@@ -673,7 +675,7 @@ test("serialize polymorphic", function(assert) {
 
 test("serialize with embedded objects", function(assert) {
   var container = this.container;
-  var store = this.container.lookup('store:main');
+  var store = this.container.lookup('service:store');
 
   SuperVillain.reopen({
     homePlanet:    DS.belongsTo("home-planet"),

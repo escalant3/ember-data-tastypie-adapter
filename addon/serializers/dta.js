@@ -14,11 +14,11 @@ export default DS.RESTSerializer.extend({
   /**
     Tastypie adapter does not support the sideloading feature
     */
-  extract: function(store, type, payload, id, requestType) {
-    this.extractMeta(store, type, payload);
+  extract: function(store, typeClass, payload, id, requestType) {
+    this.extractMeta(store, typeClass.modelName, payload);
 
     var specificExtract = "extract" + requestType.charAt(0).toUpperCase() + requestType.substr(1);
-    return this[specificExtract](store, type, payload, id, requestType);
+    return this[specificExtract](store, typeClass, payload, id, requestType);
   },
 
   /**
@@ -36,18 +36,18 @@ export default DS.RESTSerializer.extend({
 
     @method extractMeta
     @param {DS.Store} store
-    @param {subclass of DS.Model} type
+    @param {subclass of DS.Model} typeClass
     @param {Object} payload
   */
-  extractMeta: function(store, type, payload) {
+  extractMeta: function(store, typeClass, payload) {
     if (payload && payload.meta) {
-      var adapter = store.adapterFor(type);
+      var adapter = store.adapterFor(typeClass);
 
       if (adapter && adapter.get('since') !== null && payload.meta[adapter.get('since')] !== undefined) {
         payload.meta.since = payload.meta[adapter.get('since')];
       }
 
-      store.setMetadataFor(type, payload.meta);
+      store.setMetadataFor(typeClass, payload.meta);
       delete payload.meta;
     }
   },
@@ -118,22 +118,21 @@ export default DS.RESTSerializer.extend({
     }, this);
   },
 
-  extractArray: function(store, primaryType, payload) {
+  extractArray: function(store, typeClass, payload) {
     var records = [];
-    var self = this;
-    payload.objects.forEach(function (hash) {
-      self.extractEmbeddedFromPayload(store, primaryType, hash);
-      records.push(self.normalize(primaryType, hash, primaryType.typeKey));
+    payload.objects.forEach((hash) => {
+      this.extractEmbeddedFromPayload(store, typeClass, hash);
+      records.push(this.normalize(typeClass, hash, typeClass.typeKey));
     });
     return records;
   },
 
-  extractSingle: function(store, primaryType, payload, recordId, requestType) {
+  extractSingle: function(store, typeClass, payload, id, requestType) {
     var newPayload = {};
-    this.extractEmbeddedFromPayload(store, primaryType, payload);
-    newPayload[primaryType.typeKey] = payload;
+    this.extractEmbeddedFromPayload(store, typeClass, payload);
+    newPayload[typeClass.modelName] = payload;
 
-    return this._super(store, primaryType, newPayload, recordId, requestType);
+    return this._super(store, typeClass, newPayload, id, requestType);
   },
 
   isEmbedded: function(relationship) {
@@ -184,15 +183,15 @@ export default DS.RESTSerializer.extend({
       return;
     }
 
-    Ember.EnumerableUtils.forEach(payload[key], function(data) {
+    payload[key].forEach((data) => {
       var embeddedType = store.modelFor(relationship.type);
 
       serializer.extractEmbeddedFromPayload(store, embeddedType, data);
 
-      data = serializer.normalize(embeddedType, data, embeddedType.typeKey);
+      data = serializer.normalize(embeddedType, data, embeddedType.modelName);
 
-      ids.push(serializer.relationshipToResourceUri(relationship, data));
-      store.push(embeddedType, data);
+      ids.push(serializer.relationshipToResourceUri(relationship, data, store));
+      store.push(embeddedType.modelName, data);
     });
 
     payload[key] = ids;
@@ -218,40 +217,37 @@ export default DS.RESTSerializer.extend({
 
     serializer.extractEmbeddedFromPayload(store, embeddedType, data);
 
-    data = serializer.normalize(embeddedType, data, embeddedType.typeKey);
-    payload[key] = serializer.relationshipToResourceUri(relationship, data);
+    data = serializer.normalize(embeddedType, data, embeddedType.modelName);
+    payload[key] = serializer.relationshipToResourceUri(relationship, data, store);
 
     store.push(embeddedType, data);
   },
 
-  relationshipToResourceUri: function (relationship, value){
+  relationshipToResourceUri: function (relationship, value, store){
     if (!value) {
       return value;
     }
 
-    var store = relationship.type.store,
-        typeKey = relationship.type.typeKey;
-
-    return store.adapterFor(typeKey).buildURL(typeKey, Ember.get(value, 'id'));
+    return store.adapterFor(relationship.type).buildURL(Ember.String.camelize(relationship.type), Ember.get(value, 'id'));
   },
 
   serializeIntoHash: function (data, type, record, options) {
     Ember.merge(data, this.serialize(record, options));
   },
 
-  serializeBelongsTo: function (record, json, relationship) {
+  serializeBelongsTo: function (snapshot, json, relationship) {
     this._super.apply(this, arguments);
     var key = relationship.key;
     key = this.keyForRelationship ? this.keyForRelationship(key, "belongsTo") : key;
 
-    json[key] = this.relationshipToResourceUri(relationship, record.belongsTo(relationship.key));
+    json[key] = this.relationshipToResourceUri(relationship, snapshot.belongsTo(relationship.key), snapshot.record.store);
   },
 
   serializeHasMany: function(snapshot, json, relationship) {
     var key = relationship.key;
     key = this.keyForRelationship ? this.keyForRelationship(key, "hasMany") : key;
 
-    var relationshipType = snapshot.type.determineRelationshipType(relationship);
+    var relationshipType = snapshot.type.determineRelationshipType(relationship, this.store);
 
     if (relationshipType === 'manyToNone' || relationshipType === 'manyToMany' || relationshipType === 'manyToOne') {
       if (this.isEmbedded(relationship)) {
@@ -282,7 +278,7 @@ export default DS.RESTSerializer.extend({
         }
 
         json[key] = relationData.map(function (next){
-          return this.relationshipToResourceUri(relationship, next);
+          return this.relationshipToResourceUri(relationship, next, this.store);
         }, this);
 
       }
