@@ -75,11 +75,6 @@ export default DS.RESTAdapter.extend({
     },
 
     /**
-      http://stackoverflow.com/questions/417142/what-is-the-maximum-length-of-a-url-in-different-browsers
-    */
-    maxUrlLength: 2048,
-
-    /**
       Organize records into groups, each of which is to be passed to separate
       calls to `findMany`.
       This implementation groups together records that have the same base URL but
@@ -100,21 +95,21 @@ export default DS.RESTAdapter.extend({
     groupRecordsForFindMany: function (store, snapshots) {
       var groups = Ember.MapWithDefault.create({defaultValue: function(){return [];}});
       var adapter = this;
-      var maxUrlLength = this.maxUrlLength;
+      var maxURLLength = this.maxURLLength;
 
       forEach.call(snapshots, function(snapshot){
         var baseUrl = adapter._stripIDFromURL(store, snapshot);
         groups.get(baseUrl).push(snapshot);
       });
 
-      function splitGroupToFitInUrl(group, maxUrlLength, paramNameLength) {
+      function splitGroupToFitInUrl(group, maxURLLength, paramNameLength) {
         var baseUrl = adapter._stripIDFromURL(store, group[0]);
         var idsSize = 0;
         var splitGroups = [[]];
 
         forEach.call(group, function(snapshot) {
           var additionalLength = encodeURIComponent(snapshot.id).length + paramNameLength;
-          if (baseUrl.length + idsSize + additionalLength >= maxUrlLength) {
+          if (baseUrl.length + idsSize + additionalLength >= maxURLLength) {
             idsSize = 0;
             splitGroups.push([]);
           }
@@ -131,7 +126,7 @@ export default DS.RESTAdapter.extend({
       var groupsArray = [];
       groups.forEach(function(group){
         var paramNameLength = '&ids%5B%5D='.length;
-        var splitGroups = splitGroupToFitInUrl(group, maxUrlLength, paramNameLength);
+        var splitGroups = splitGroupToFitInUrl(group, maxURLLength, paramNameLength);
 
         forEach.call(splitGroups, function(splitGroup) {
           groupsArray.push(splitGroup);
