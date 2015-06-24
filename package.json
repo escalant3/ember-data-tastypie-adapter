@@ -1,6 +1,6 @@
 {
   "name": "ember-data-tastypie-adapter",
-  "version": "0.16.0",
+  "version": "0.17.0",
   "description": "Django Tastypie Adapter",
   "directories": {
     "doc": "doc",
